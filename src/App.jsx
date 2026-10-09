@@ -21,7 +21,7 @@ const navItems = [
 ];
 
 function App() {
-  const [page, setPage] = useState("Today");
+  const [page, setPage] = useState("Brain");
   const [tasks, setTasks] = useState(() => {
     try {
       const savedTasks = localStorage.getItem("orbit-tasks");
