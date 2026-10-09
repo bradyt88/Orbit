@@ -23,6 +23,7 @@ export default function BrainWorkspace() {
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("Ideas");
   const [notice, setNotice] = useState("");
+  const [command, setCommand] = useState("");
 
   useEffect(() => {
     try { localStorage.setItem("orbit-brain-memories", JSON.stringify(memories)); } catch { /* storage may be unavailable */ }
@@ -34,6 +35,31 @@ export default function BrainWorkspace() {
     return matchesCategory && (!query || `${memory.title} ${memory.content} ${memory.category}`.toLowerCase().includes(query));
   }).sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.createdAt - a.createdAt), [memories, filter, search]);
   const selected = memories.find((memory) => memory.id === selectedId);
+
+  function captureCommand(event) {
+    event.preventDefault();
+    const value = command.trim();
+    if (!value) return;
+    const text = value.toLowerCase();
+    const detectedCategory =
+      /\b(meeting|appointment|calendar|event|remind|reminder|date|tomorrow|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday|january|february|march|april|may|june|july|august|september|october|november|december)\b/.test(text) ? "Calendar" :
+      /\b(family|mum|mom|dad|wife|husband|son|daughter|kids|children)\b/.test(text) ? "Family" :
+      /\b(work|boss|shift|office|warehouse|job|colleague)\b/.test(text) ? "Work" :
+      /\b(bill|money|budget|pay|bank|spend|finance)\b/.test(text) ? "Finance" :
+      /\b(doctor|health|hospital|medicine|appointment with gp)\b/.test(text) ? "Health" :
+      /\b(song|music|video|design|write|create|art|content)\b/.test(text) ? "Creative" :
+      /\b(buy|do|finish|call|email|send|fix|book|clean|task)\b/.test(text) ? "Tasks" : "Ideas";
+    const [x, y] = positions[memories.length % positions.length];
+    const memory = { id: Date.now(), title: value.length > 58 ? value.slice(0, 55) + "..." : value, content: value, category: detectedCategory, pinned: false, createdAt: Date.now(), x, y };
+    setMemories((current) => [memory, ...current]);
+    setSelectedId(memory.id);
+    setFilter("All");
+    setSearch("");
+    setCommand("");
+    setNotice(detectedCategory === "Calendar"
+      ? "Classified as Calendar and saved to Brain. Calendar scheduling and timed notifications are not connected yet."
+      : `Classified as ${detectedCategory} and saved to Brain.`);
+  }
 
   function saveMemory(event) {
     event.preventDefault();
@@ -100,6 +126,22 @@ export default function BrainWorkspace() {
         </div>
         <div className="universe-footer"><span>✦ Every part of your life, connected.</span><span>SELECT A BRANCH TO EXPLORE</span></div>
       </div>
+
+      <section className="orbit-command-card" aria-label="Tell Orbit anything">
+        <div className="command-heading">
+          <span className="command-orb">✳</span>
+          <div><strong>Tell Orbit anything…</strong><span>Capture a thought, task, plan or event in one place.</span></div>
+          <span className="command-live"><i /> READY</span>
+        </div>
+        <form className="orbit-command-form" onSubmit={captureCommand}>
+          <span className="command-spark">✧</span>
+          <input value={command} onChange={(event) => setCommand(event.target.value)} placeholder="e.g. Meeting with John next Tuesday at 2pm…" aria-label="Tell Orbit anything" />
+          <button type="submit" disabled={!command.trim()}>Send to Orbit <span>↗</span></button>
+        </form>
+        <div className="command-chips">
+          {["Add an event", "Remember an idea", "Create a task"].map((hint) => <button type="button" key={hint} onClick={() => setCommand(hint === "Add an event" ? "Meeting with " : hint === "Create a task" ? "Task: " : "Idea: ")}>{hint}</button>)}
+        </div>
+      </section>
 
       {showForm && <form className="brain-create-card" onSubmit={saveMemory}>
         <div className="section-heading"><div><span className="section-symbol">✧</span><h2>Plant a new thought</h2></div><span className="mini-tag">QUICK CAPTURE</span></div>
