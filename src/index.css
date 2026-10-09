@@ -706,3 +706,82 @@ button:focus-visible, input:focus-visible { outline-color: #ffbd58; }
 .orbit-space-node:active { cursor:grabbing; }
 .orbit-branches-compact { display:flex; flex-wrap:wrap; justify-content:center; }
 @media(max-width:600px) { .orbit-voice-row { padding:0 10px 12px; flex-wrap:wrap; } }
+
+
+/* ORBIT CALENDAR WORKSPACE */
+.orbit-calendar-workspace { max-width:1150px; margin:22px auto 18px; padding:clamp(14px,2.5vw,26px); border:1px solid #50301f; border-radius:18px; background:linear-gradient(145deg,#100b0d 0%,#090709 65%,#10090c 100%); box-shadow:0 0 35px #ff79300b,inset 0 1px #ffcb6b0c; color:#ead9c8; }
+.orbit-calendar-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:22px; }
+.orbit-calendar-heading h2 { margin:5px 0 3px; color:#f7e5cd; font:600 clamp(22px,3vw,32px) 'Space Grotesk',sans-serif; }
+.orbit-calendar-heading p { margin:0; color:#a99483; font-size:12px; }
+.orbit-calendar-add { border:1px solid #ff8e43; border-radius:24px; padding:10px 16px; background:linear-gradient(125deg,#ffbd55,#ff6746); color:#210e0a; font-weight:700; font-size:12px; cursor:pointer; white-space:nowrap; }
+.orbit-calendar-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px; }
+.orbit-calendar-views,.orbit-calendar-nav { display:flex; align-items:center; gap:5px; padding:4px; border:1px solid #38241c; border-radius:12px; background:#090708; }
+.orbit-calendar-views button,.orbit-calendar-nav button { border:0; border-radius:8px; padding:9px 13px; background:transparent; color:#bba795; font-size:11px; cursor:pointer; }
+.orbit-calendar-views button.active { background:linear-gradient(125deg,#70441f,#3d1b1d); color:#ffe0a0; box-shadow:inset 0 0 0 1px #d18d42; }
+.orbit-calendar-nav button:hover,.orbit-calendar-views button:hover { color:#ffe0a0; }
+.orbit-calendar-monthline { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; }
+.orbit-calendar-monthline h3 { margin:0; color:#f0dfce; font:600 17px 'Space Grotesk',sans-serif; }
+.orbit-calendar-search { display:flex; align-items:center; gap:8px; min-width:190px; padding:7px 10px; border:1px solid #3b2921; border-radius:9px; color:#d8a95f; background:#080708; }
+.orbit-calendar-search input { min-width:0; width:100%; border:0; outline:0; background:transparent; color:#f0dfce; font:11px Inter,system-ui,sans-serif; }
+.orbit-month-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); border-top:1px solid #39261e; border-left:1px solid #39261e; border-radius:10px; overflow:hidden; }
+.orbit-month-weekday { padding:10px 4px; background:#171012; color:#bd9e81; font-size:10px; text-align:center; border-right:1px solid #39261e; border-bottom:1px solid #39261e; }
+.orbit-month-day { display:flex; flex-direction:column; align-items:stretch; gap:4px; min-height:90px; min-width:0; padding:7px 6px; border:0; border-right:1px solid #39261e; border-bottom:1px solid #39261e; background:#0d090b; color:#e6d7c7; text-align:left; cursor:pointer; }
+.orbit-month-day>span { align-self:flex-start; display:grid; place-items:center; width:24px; height:24px; border-radius:50%; font-size:11px; }
+.orbit-month-day.outside { background:#090708; cursor:default; }
+.orbit-month-day.past { color:#766b65; background:#0a0809; }
+.orbit-month-day.today { background:linear-gradient(145deg,#26180f,#160d10); box-shadow:inset 0 0 0 1px #d99b4c; }
+.orbit-month-day.today>span { background:#9a5e24; color:#fff0cc; font-weight:700; }
+.orbit-month-day i { display:block; overflow:hidden; padding:4px 5px; border-left:2px solid #d8a24f; border-radius:3px; background:#302015; color:#f3d5a1; font-size:9px; font-style:normal; line-height:1.3; text-overflow:ellipsis; white-space:nowrap; cursor:pointer; }
+.orbit-month-day i:hover { background:#51301a; }
+.orbit-month-day small { color:#b9a28c; font-size:9px; }
+.orbit-calendar-agenda { display:flex; flex-direction:column; gap:8px; min-height:80px; }
+.orbit-calendar-event-row { display:grid; grid-template-columns:100px minmax(0,1fr) 18px; align-items:center; gap:13px; width:100%; padding:13px 15px; border:1px solid #3c2920; border-radius:10px; background:linear-gradient(100deg,#171011,#0c090a); color:#e8d5c1; text-align:left; cursor:pointer; }
+.orbit-calendar-event-row:hover { border-color:#a36b32; background:#1a1010; }
+.orbit-calendar-event-row time { color:#e6b866; font-size:11px; }
+.orbit-calendar-event-row time small { display:block; margin-top:4px; color:#a99483; }
+.orbit-calendar-event-row span { min-width:0; display:flex; flex-direction:column; gap:4px; }
+.orbit-calendar-event-row strong { font-size:12px; overflow-wrap:anywhere; }
+.orbit-calendar-event-row span small { color:#a99483; font-size:10px; overflow-wrap:anywhere; }
+.orbit-calendar-event-row>b { color:#d8a95f; }
+.orbit-calendar-empty { padding:28px 16px; border:1px dashed #4a3024; border-radius:10px; color:#ad9885; text-align:center; font-size:12px; }
+.orbit-week-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); border:1px solid #39261e; border-radius:10px; overflow:hidden; }
+.orbit-week-column { min-width:0; min-height:180px; padding:7px 5px; border-right:1px solid #39261e; background:#0d090b; }
+.orbit-week-column:last-child { border-right:0; }
+.orbit-week-column.today { background:#1c120e; box-shadow:inset 0 0 0 1px #d99b4c; }
+.orbit-week-column>button:first-child { display:flex; flex-direction:column; align-items:center; gap:5px; width:100%; margin-bottom:9px; border:0; background:transparent; color:#e8d5c1; cursor:pointer; }
+.orbit-week-column>button:first-child small { color:#b99b7f; font-size:9px; }
+.orbit-week-column>button:first-child strong { display:grid; place-items:center; width:27px; height:27px; border-radius:50%; font-size:12px; }
+.orbit-week-column.today>button:first-child strong { background:#9a5e24; color:#fff0cc; }
+.orbit-week-event { display:block; width:100%; margin-bottom:5px; padding:5px 4px; border:0; border-left:2px solid #ff6d67; border-radius:3px; background:#2a1518; color:#f3c4b4; text-align:left; font-size:9px; overflow-wrap:anywhere; cursor:pointer; }
+.orbit-week-event small { display:block; margin-bottom:3px; color:#dfab78; }
+.orbit-calendar-bottomline { display:flex; justify-content:space-between; gap:10px; margin-top:13px; color:#907967; font-size:10px; }
+.orbit-event-form-wrap { position:relative; margin-top:18px; padding:clamp(13px,2vw,22px); border:1px solid #714226; border-radius:13px; background:radial-gradient(ellipse at top right,#3a1719 0%,#100a0c 50%); }
+.orbit-event-form { display:flex; flex-direction:column; gap:12px; }
+.orbit-event-form-heading { display:flex; align-items:center; justify-content:space-between; }
+.orbit-event-form-heading h3 { margin:0; color:#ffe5c0; font:600 17px 'Space Grotesk',sans-serif; }
+.orbit-event-form-heading button { width:30px; height:30px; border:1px solid #69402c; border-radius:50%; background:#160c0d; color:#eac7a7; font-size:20px; cursor:pointer; }
+.orbit-event-form label { display:flex; flex-direction:column; gap:6px; color:#d2ad83; font-size:10px; }
+.orbit-event-form input,.orbit-event-form select,.orbit-event-form textarea { width:100%; min-width:0; padding:10px 11px; border:1px solid #513522; border-radius:7px; outline:0; background:#090708; color:#f1e2d2; color-scheme:dark; font:12px Inter,system-ui,sans-serif; }
+.orbit-event-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.orbit-event-reminder-note { display:flex; align-items:flex-start; gap:9px; padding:10px; border:1px solid #4c321f; border-radius:8px; color:#c4a27c; background:#130c0c; font-size:10px; line-height:1.6; }
+.orbit-event-form-actions { display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap; gap:8px; }
+.orbit-calendar-workspace .orbit-primary-button { padding:9px 13px; border:1px solid #ff6b39; border-radius:7px; background:linear-gradient(125deg,#ffbd55,#ff6746); color:#210e0a; font-size:11px; font-weight:700; cursor:pointer; }
+.orbit-branch-content-hidden { display:none; }
+@media(max-width:700px) {
+ .orbit-calendar-workspace { padding:12px; border-radius:12px; }
+ .orbit-calendar-heading { align-items:flex-start; }
+ .orbit-calendar-toolbar { align-items:stretch; }
+ .orbit-calendar-views { justify-content:space-between; width:100%; }
+ .orbit-calendar-views button { flex:1; padding:9px 5px; }
+ .orbit-calendar-nav { justify-content:center; }
+ .orbit-calendar-monthline { align-items:stretch; flex-direction:column; }
+ .orbit-calendar-search { width:100%; }
+ .orbit-month-day { min-height:62px; padding:4px 3px; }
+ .orbit-month-day>span { width:20px; height:20px; font-size:10px; }
+ .orbit-month-day i { font-size:8px; padding:3px 2px; }
+ .orbit-week-grid { overflow-x:auto; grid-template-columns:repeat(7,minmax(82px,1fr)); }
+ .orbit-week-column { min-height:150px; }
+ .orbit-calendar-event-row { grid-template-columns:72px minmax(0,1fr) 12px; gap:8px; padding:11px 9px; }
+ .orbit-calendar-bottomline { flex-direction:column; }
+ .orbit-event-fields { grid-template-columns:1fr; }
+}
