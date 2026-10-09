@@ -47,6 +47,8 @@ export default function BrainWorkspace() {
   const [editContent, setEditContent] = useState("");
   const [editBranch, setEditBranch] = useState("Ideas");
   const [notice, setNotice] = useState("");
+  const [voiceListening, setVoiceListening] = useState(false);
+  const [nodePositions, setNodePositions] = useState({});
 
   useEffect(() => {
     try { localStorage.setItem("orbit-brain-memories", JSON.stringify(entries)); } catch {}
@@ -100,7 +102,7 @@ export default function BrainWorkspace() {
     setSelectedId(null); setEditingId(null); setNotice("Entry removed from your Brain.");
   }
 
-  const nodeLayout = [
+  const baseNodeLayout = [
     { name: "Tasks", icon: "✓", x: 30, y: 17, tone: "gold", hint: "To-do · Projects" },
     { name: "Calendar", icon: "▦", x: 50, y: 7, tone: "red", hint: "Events · Reminders" },
     { name: "Family", icon: "♟", x: 70, y: 17, tone: "gold", hint: "Plans · People" },
@@ -115,6 +117,28 @@ export default function BrainWorkspace() {
     { name: "Moments", icon: "♡", x: 50, y: 94, tone: "red", hint: "Memories · Life" },
     { name: "People", icon: "♧", x: 89, y: 22, tone: "gold", hint: "Friends · Contacts" }
   ];
+  const nodeLayout = baseNodeLayout.map((node) => ({ ...node, ...(nodePositions[node.name] || {}) }));
+
+  function startVoiceInput() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) { setNotice("Voice input is not supported in this browser. Try Chrome or Edge."); return; }
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-GB"; recognition.interimResults = true;
+    recognition.onstart = () => setVoiceListening(true);
+    recognition.onend = () => setVoiceListening(false);
+    recognition.onerror = () => { setVoiceListening(false); setNotice("Voice input stopped. Check microphone permission and try again."); };
+    recognition.onresult = (event) => setInput(Array.from(event.results).map((result) => result[0].transcript).join(" "));
+    recognition.start();
+  }
+
+  function moveNode(event, node) {
+    if (event.buttons !== 1) return;
+    const bounds = event.currentTarget.parentElement.getBoundingClientRect();
+    const x = Math.min(94, Math.max(6, ((event.clientX - bounds.left) / bounds.width) * 100));
+    const y = Math.min(90, Math.max(6, ((event.clientY - bounds.top) / bounds.height) * 100));
+    setNodePositions((current) => ({ ...current, [node.name]: { x, y } }));
+  }
+
   return (
     <main className="orbit-one-screen orbit-cosmos-screen">
       <div className="orbit-space-stars" aria-hidden="true" />
@@ -140,7 +164,10 @@ export default function BrainWorkspace() {
           <div className="orbit-core-caption"><span className="orbit-live-dot" /> YOUR BRAIN IS THE CENTRE</div>
         </div>
         {nodeLayout.map((node, index) => (
-          <button key={node.name} type="button" style={{ left: node.x + "%", top: node.y + "%", "--node-float": (5.5 + (index % 4) * 0.8) + "s", "--node-delay": (-index * 0.7) + "s" }}
+          <button key={node.name} type="button" style={{ left: node.x + "%", top: node.y + "%", "--node-float": (5.5 + (index % 4) * 0.8) + "s", "--node-delay": (-index * 0.7) + "s", touchAction: "none" }}
+            onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); event.currentTarget.dataset.dragged = "true"; }}
+            onPointerMove={(event) => { if (event.currentTarget.dataset.dragged === "true" && event.buttons === 1) moveNode(event, node); }}
+            onPointerUp={(event) => { event.currentTarget.dataset.dragged = "false"; }}
             className={"orbit-space-node " + node.tone + (activeBranch === node.name ? " selected" : "")}
             onClick={() => { setActiveBranch(node.name); setEditingId(null); document.querySelector(".orbit-branch-content")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
             aria-label={"Open " + node.name + " branch"}>
@@ -152,6 +179,17 @@ export default function BrainWorkspace() {
         <div className="orbit-cosmos-caption"><span /> CONNECTED THROUGH YOUR BRAIN <span /></div>
       </section>
 
+      <section className="orbit-capture-area orbit-cosmic-capture">
+        <div className="orbit-section-title"><span className="orbit-gold-spark">✦</span><div><h1>Ask or add to your Brain...</h1><p>Tell Orbit anything — an event, a task, a goal, a thought. It will organise it for you.</p></div></div>
+        <form className="orbit-capture-form" onSubmit={addEntry}>
+          <textarea value={input} onChange={(event) => setInput(event.target.value)} placeholder="Tell Orbit anything… what's on your mind?" aria-label="Ask or add to your Brain" rows={2} />
+          <div className="orbit-voice-row"><button type="button" className={"orbit-voice-button " + (voiceListening ? "listening" : "")} onClick={startVoiceInput} aria-label="Speak to Orbit"><span>{voiceListening ? "●" : "🎙"}</span> {voiceListening ? "Listening…" : "Speak to Orbit"}</button><span>Use your voice or type naturally</span></div>
+          <div className="orbit-capture-bottom"><span className="orbit-input-hint">✦ YOUR LIFE, READY TO CONNECT</span><button type="submit" disabled={!input.trim()}><span>↗</span> Add to Brain</button></div>
+        </form>
+        <div className="orbit-quick-add">{[{label:"▦ Add event",value:"Event: "},{label:"✓ Add task",value:"Task: "},{label:"◎ Add goal",value:"Goal: "},{label:"♡ Add moment",value:"Moment: "},{label:"✧ Add idea",value:"Idea: "}].map((item) => <button type="button" key={item.label} onClick={() => setInput((current) => current || item.value)}>{item.label}</button>)}</div>
+        {notice && <p className="orbit-action-notice" role="status">{notice}</p>}
+      </section>
+
       <nav className="orbit-branches orbit-branches-compact" aria-label="Brain branches">
         {branches.map((branch) => (
           <button key={branch} type="button" className={"orbit-branch-pill " + (activeBranch === branch ? "active" : "")} onClick={() => { setActiveBranch(branch); setEditingId(null); }}>
@@ -159,16 +197,6 @@ export default function BrainWorkspace() {
           </button>
         ))}
       </nav>
-
-      <section className="orbit-capture-area orbit-cosmic-capture">
-        <div className="orbit-section-title"><span className="orbit-gold-spark">✦</span><div><h1>Ask or add to your Brain...</h1><p>Tell Orbit anything — an event, a task, a goal, a thought. It will organise it for you.</p></div></div>
-        <form className="orbit-capture-form" onSubmit={addEntry}>
-          <textarea value={input} onChange={(event) => setInput(event.target.value)} placeholder="Tell Orbit anything… what's on your mind?" aria-label="Ask or add to your Brain" rows={2} />
-          <div className="orbit-capture-bottom"><span className="orbit-input-hint">✦ YOUR LIFE, READY TO CONNECT</span><button type="submit" disabled={!input.trim()}><span>↗</span> Add to Brain</button></div>
-        </form>
-        <div className="orbit-quick-add">{[{label:"▦ Add event",value:"Event: "},{label:"✓ Add task",value:"Task: "},{label:"◎ Add goal",value:"Goal: "},{label:"♡ Add moment",value:"Moment: "},{label:"✧ Add idea",value:"Idea: "}].map((item) => <button type="button" key={item.label} onClick={() => setInput((current) => current || item.value)}>{item.label}</button>)}</div>
-        {notice && <p className="orbit-action-notice" role="status">{notice}</p>}
-      </section>
 
       <section className="orbit-branch-content" aria-live="polite">
         <div className="orbit-branch-content-heading"><div><span className="orbit-small-eyebrow">BRAIN BRANCH</span><h2>{activeBranch === "All" ? "Everything connected" : activeBranch}</h2></div><span className="orbit-entry-count">{visibleEntries.length} {visibleEntries.length === 1 ? "entry" : "entries"}</span></div>
