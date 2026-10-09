@@ -68,25 +68,7 @@ export default function BrainWorkspace() {
           <div className="universe-glow" />
           <div className="brain-core" aria-label="Orbit central brain">
             <span className="core-ring core-ring-one" /><span className="core-ring core-ring-two" />
-            <svg className="anatomical-brain" viewBox="0 0 320 240" role="img" aria-label="Glowing 3D-style brain illustration">
-              <defs>
-                <linearGradient id="brainGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#fff0b0"/><stop offset="42%" stopColor="#ffb52e"/><stop offset="72%" stopColor="#ff642f"/><stop offset="100%" stopColor="#a51e2d"/></linearGradient>
-                <filter id="brainGlow"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-              </defs>
-              <g fill="#170b0d" stroke="url(#brainGold)" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" filter="url(#brainGlow)">
-                <path d="M157 54 C143 24 105 24 88 43 C61 37 40 58 44 83 C20 98 29 129 47 141 C37 164 55 185 78 184 C89 207 118 205 135 187 L157 169 Z"/>
-                <path d="M163 54 C178 24 216 24 233 43 C260 37 281 58 277 83 C301 98 292 129 274 141 C284 164 266 185 243 184 C232 207 203 205 186 187 L163 169 Z"/>
-                <path d="M160 52 L160 171" fill="none" strokeWidth="2.4"/>
-                <path d="M91 47 C74 62 93 72 77 84 S69 111 87 119 S73 145 94 156 S111 175 102 188" fill="none"/>
-                <path d="M120 37 C104 51 124 63 111 76 S106 99 126 105 S110 132 130 143 S125 167 137 178" fill="none"/>
-                <path d="M49 91 C69 92 69 105 57 115 M55 145 C76 135 87 147 81 164 M137 57 C147 72 130 83 144 96 M100 95 C117 89 119 103 111 116" fill="none" strokeWidth="2.4"/>
-                <path d="M229 47 C246 62 227 72 243 84 S251 111 233 119 S247 145 226 156 S209 175 218 188" fill="none"/>
-                <path d="M200 37 C216 51 196 63 209 76 S214 99 194 105 S210 132 190 143 S195 167 183 178" fill="none"/>
-                <path d="M271 91 C251 92 251 105 263 115 M265 145 C244 135 233 147 239 164 M183 57 C173 72 190 83 176 96 M220 95 C203 89 201 103 209 116" fill="none" strokeWidth="2.4"/>
-                <path d="M145 171 C144 192 151 207 160 215 C169 207 176 192 175 171" fill="#260b12"/>
-              </g>
-              <g fill="#ffe9a3"><circle cx="73" cy="75" r="2.5"/><circle cx="122" cy="61" r="2"/><circle cx="102" cy="146" r="2.5"/><circle cx="245" cy="76" r="2.5"/><circle cx="197" cy="61" r="2"/><circle cx="218" cy="146" r="2.5"/></g>
-            </svg>
+            <img className="anatomical-brain" src={`${import.meta.env.BASE_URL}orbit-brain.svg`} alt="Glowing gold and red neural brain" />
             <span className="core-label">ORBIT CORE</span>
           </div>
           <svg className="brain-connections" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
