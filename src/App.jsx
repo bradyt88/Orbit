@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./index.css";
 
 const initialTasks = [
@@ -20,9 +20,24 @@ const navItems = [
 
 function App() {
   const [page, setPage] = useState("Today");
-  const [tasks, setTasks] = useState(initialTasks);
+  const [tasks, setTasks] = useState(() => {
+    try {
+      const savedTasks = localStorage.getItem("orbit-tasks");
+      return savedTasks ? JSON.parse(savedTasks) : initialTasks;
+    } catch {
+      return initialTasks;
+    }
+  });
   const [capture, setCapture] = useState("");
   const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("orbit-tasks", JSON.stringify(tasks));
+    } catch {
+      // Orbit remains usable if browser storage is unavailable.
+    }
+  }, [tasks]);
 
   const unfinished = tasks.filter((task) => !task.done).length;
 
