@@ -59,6 +59,7 @@ export default function BrainWorkspace() {
   const [linkDraft, setLinkDraft] = useState({ personId: "", label: "Parent" });
   const [familyMode, setFamilyMode] = useState("overview");
   const [familyFocusId, setFamilyFocusId] = useState(null);
+  const [treeFullscreen, setTreeFullscreen] = useState(false);
   const [calendarView, setCalendarView] = useState("Monthly");
   const [calendarCursor, setCalendarCursor] = useState(() => new Date());
   const [calendarSearch, setCalendarSearch] = useState("");
@@ -72,6 +73,13 @@ export default function BrainWorkspace() {
   useEffect(() => {
     try { localStorage.setItem("orbit-brain-memories", JSON.stringify(entries)); } catch {}
   }, [entries]);
+
+  useEffect(() => {
+    if (!treeFullscreen) return;
+    const handleKeyDown = (event) => { if (event.key === "Escape") setTreeFullscreen(false); };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [treeFullscreen]);
 
   const visibleEntries = useMemo(() => entries.filter((entry) => activeBranch === "All" || entry.category === activeBranch), [entries, activeBranch]);
   const selected = entries.find((entry) => entry.id === selectedId) || visibleEntries[0] || null;
@@ -356,7 +364,7 @@ export default function BrainWorkspace() {
             <div className="orbit-person-related"><span className="orbit-small-eyebrow">CONNECTED FAMILY</span>{familyLinks.filter((link)=>link.from===selectedPerson.id||link.to===selectedPerson.id).map((link)=>{const other=people.find((person)=>person.id===(link.from===selectedPerson.id?link.to:link.from));return other?<div className="orbit-person-link-row" key={link.id}><span>{other.preferredName||other.name}</span><small>{link.label}</small><button type="button" onClick={()=>removeFamilyLink(link.id)} aria-label={"Remove relationship with "+other.name}>×</button></div>:null})}
               {people.filter((person)=>person.id!==selectedPerson.id).length>0&&<form className="orbit-link-person-form" onSubmit={addFamilyLink}><select value={linkDraft.personId} onChange={(e)=>setLinkDraft({...linkDraft,personId:e.target.value})} aria-label="Choose a person to connect"><option value="">Choose person…</option>{people.filter((person)=>person.id!==selectedPerson.id).map((person)=><option key={person.id} value={person.id}>{person.preferredName||person.name}</option>)}</select><select value={linkDraft.label} onChange={(e)=>setLinkDraft({...linkDraft,label:e.target.value})} aria-label="Relationship type"><option>Parent</option><option>Child</option><option>Partner</option><option>Sibling</option><option>Grandparent</option><option>Grandchild</option><option>Other family</option><option>Friend</option><option>Custom</option></select><button type="submit" className="orbit-secondary-button">＋ Link</button></form>}
             </div><div className="orbit-person-profile-actions"><button type="button" className="orbit-delete-button" onClick={()=>deletePerson(selectedPerson.id)}>Delete profile</button><button type="button" className="orbit-secondary-button" onClick={()=>{setActiveBranch("Family");setFamilyFocusId(selectedPerson.id);}}>View in Family Tree ↗</button></div></> : <div className="orbit-calendar-empty">Select a person to view their profile, relationships and connected information.</div>}</div>
-        </div> : <><div className="orbit-tree-toolbar"><div className="orbit-calendar-views"><button type="button" className={familyMode==="overview"?"active":""} onClick={()=>setFamilyMode("overview")}>Full tree</button><button type="button" className={familyMode==="focus"?"active":""} onClick={()=>setFamilyMode("focus")}>Close family</button></div><div className="orbit-tree-toolbar-right">{familyMode==="focus"&&<select value={familyFocusId||""} onChange={(e)=>setFamilyFocusId(e.target.value)} aria-label="Focus family member"><option value="">Choose person…</option>{people.map((person)=><option key={person.id} value={person.id}>{person.preferredName||person.name}</option>)}</select>}<button type="button" className="orbit-calendar-add" onClick={()=>{setActiveBranch("People");openNewPerson();}}>＋ Add person</button></div></div>
+        </div> : <><div className="orbit-tree-toolbar"><div className="orbit-calendar-views"><button type="button" className={familyMode==="overview"?"active":""} onClick={()=>setFamilyMode("overview")}>Full tree</button><button type="button" className={familyMode==="focus"?"active":""} onClick={()=>setFamilyMode("focus")}>Close family</button></div><div className="orbit-tree-toolbar-right"><button type="button" className="orbit-secondary-button" onClick={()=>setTreeFullscreen(true)}>⛶ Expand tree</button>{familyMode==="focus"&&<select value={familyFocusId||""} onChange={(e)=>setFamilyFocusId(e.target.value)} aria-label="Focus family member"><option value="">Choose person…</option>{people.map((person)=><option key={person.id} value={person.id}>{person.preferredName||person.name}</option>)}</select>}<button type="button" className="orbit-calendar-add" onClick={()=>{setActiveBranch("People");openNewPerson();}}>＋ Add person</button></div></div>
           <div className={"orbit-living-tree "+(familyMode==="focus"?"focused-tree":"overview-tree")}>
             <div className="orbit-tree-canopy-glow" aria-hidden="true"></div>
             <div className="orbit-tree-stars" aria-hidden="true"><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/></div>
