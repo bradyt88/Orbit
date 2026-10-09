@@ -461,3 +461,24 @@ button:focus-visible, input:focus-visible { outline-color: #ffbd58; }
 @media (prefers-reduced-motion: reduce) {
   .anatomical-brain,.connection-line,.core-ring { animation: none !important; }
 }
+
+
+/* Central Orbit command capture */
+.orbit-command-card { position: relative; margin: 22px 0 34px; padding: 22px; border: 1px solid #8c5428; border-radius: 16px; background: radial-gradient(ellipse at 10% 0%,#2b1112 0%,#10090a 62%); box-shadow: 0 0 36px #ff542c0c,inset 0 0 28px #ffb52e06; }
+.command-heading { display:flex; align-items:center; gap:12px; margin-bottom:17px; }
+.command-orb { display:grid; place-items:center; flex:0 0 38px; height:38px; border:1px solid #a9672c; border-radius:50%; color:#ffd982; background:#29130f; box-shadow:0 0 20px #ff9e2f1c; }
+.command-heading div { display:grid; gap:4px; flex:1; }
+.command-heading strong { color:#ffe4ad; font:600 16px 'Space Grotesk',sans-serif; }
+.command-heading div span { color:#a99586; font-size:11px; }
+.command-live { display:flex; align-items:center; gap:7px; color:#a99586; font-size:8px; letter-spacing:1.2px; }
+.command-live i { width:6px; height:6px; border-radius:50%; background:#ff3547; box-shadow:0 0 9px #ff3547; }
+.orbit-command-form { display:flex; align-items:center; gap:12px; padding:8px 9px 8px 15px; border:1px solid #5c3526; border-radius:11px; background:#080607; }
+.command-spark { color:#ffd982; font-size:20px; }
+.orbit-command-form input { flex:1; min-width:0; border:0; outline:0; color:#fff0d3; background:transparent; font-size:12px; padding:10px 0; }
+.orbit-command-form input::placeholder { color:#77675f; }
+.orbit-command-form button { border:1px solid #f4bd58; border-radius:8px; padding:11px 14px; background:linear-gradient(120deg,#ffb52e,#ffe3a0); color:#24100a; font-size:11px; font-weight:700; white-space:nowrap; }
+.orbit-command-form button:disabled { opacity:.5; cursor:not-allowed; }
+.command-chips { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+.command-chips button { border:1px solid #39231c; border-radius:20px; padding:7px 11px; background:#160c0d; color:#c3aa91; font-size:10px; }
+.command-chips button:hover { border-color:#a9672c; color:#ffe3a0; }
+@media(max-width:680px) { .orbit-command-card { padding:15px; } .command-heading div span { line-height:1.5; } .command-live { display:none; } .orbit-command-form { flex-wrap:wrap; } .orbit-command-form input { flex-basis:calc(100% - 35px); } .orbit-command-form button { width:100%; } }
