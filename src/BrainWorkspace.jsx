@@ -108,13 +108,13 @@ export default function BrainWorkspace() {
       </header>
 
       <section className="orbit-brain-core" aria-label="Orbit Brain">
-        <img className="orbit-core-image" src={\`${import.meta.env.BASE_URL}images/brain/orbit-brain.png\`} alt="Orbit's glowing gold and crimson neural brain" />
+        <img className="orbit-core-image" src={import.meta.env.BASE_URL + "images/brain/orbit-brain.png"} alt="Orbit's glowing gold and crimson neural brain" />
         <div className="orbit-core-caption"><span className="orbit-live-dot" /> YOUR BRAIN IS THE CENTRE</div>
       </section>
 
       <nav className="orbit-branches" aria-label="Brain branches">
         {branches.map((branch) => (
-          <button key={branch} type="button" className={\`orbit-branch-pill \${activeBranch === branch ? "active" : ""}\`} onClick={() => { setActiveBranch(branch); setEditingId(null); }}>
+          <button key={branch} type="button" className={`orbit-branch-pill ${activeBranch === branch ? "active" : ""}`} onClick={() => { setActiveBranch(branch); setEditingId(null); }}>
             {branch}
             {branch !== "All" && <span>{entries.filter((entry) => entry.category === branch).length}</span>}
           </button>
@@ -137,7 +137,7 @@ export default function BrainWorkspace() {
       <section className="orbit-branch-content" aria-live="polite">
         <div className="orbit-branch-content-heading"><div><span className="orbit-small-eyebrow">BRAIN BRANCH</span><h2>{activeBranch === "All" ? "Everything connected" : activeBranch}</h2></div><span className="orbit-entry-count">{visibleEntries.length} {visibleEntries.length === 1 ? "entry" : "entries"}</span></div>
         <div className="orbit-entry-list">
-          {visibleEntries.length ? visibleEntries.map((entry) => <button type="button" key={entry.id} className={\`orbit-entry-row \${selected?.id === entry.id ? "selected" : ""}\`} onClick={() => { setSelectedId(entry.id); setEditingId(null); }}><span className="orbit-entry-category">{entry.category}</span><span className="orbit-entry-title">{entry.title}</span><span className="orbit-entry-arrow">↗</span></button>) : <div className="orbit-empty-branch">Nothing filed here yet. Add something above and Orbit will place it in this branch.</div>}
+          {visibleEntries.length ? visibleEntries.map((entry) => <button type="button" key={entry.id} className={`orbit-entry-row ${selected?.id === entry.id ? "selected" : ""}`} onClick={() => { setSelectedId(entry.id); setEditingId(null); }}><span className="orbit-entry-category">{entry.category}</span><span className="orbit-entry-title">{entry.title}</span><span className="orbit-entry-arrow">↗</span></button>) : <div className="orbit-empty-branch">Nothing filed here yet. Add something above and Orbit will place it in this branch.</div>}
         </div>
         {selected && <article className="orbit-entry-detail">
           {editingId === selected.id ? <form className="orbit-edit-form" onSubmit={saveEdit}><label>Title<input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} required /></label><label>Branch<select value={editBranch} onChange={(event) => setEditBranch(event.target.value)}>{branches.filter((branch) => branch !== "All").map((branch) => <option key={branch}>{branch}</option>)}</select></label><label>Details<textarea rows={4} value={editContent} onChange={(event) => setEditContent(event.target.value)} /></label><div className="orbit-detail-actions"><button type="button" onClick={() => setEditingId(null)} className="orbit-secondary-button">Cancel</button><button type="submit" className="orbit-primary-button">Save changes</button></div></form> : <><div className="orbit-detail-top"><span className="orbit-entry-category">{selected.category}</span><div className="orbit-detail-actions"><button type="button" className="orbit-secondary-button" onClick={() => startEdit(selected)}>Edit</button><button type="button" className="orbit-delete-button" onClick={() => removeEntry(selected.id)}>Delete</button></div></div><h3>{selected.title}</h3><p>{selected.content}</p></>}
