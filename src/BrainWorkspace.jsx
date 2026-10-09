@@ -49,6 +49,15 @@ export default function BrainWorkspace() {
   const [notice, setNotice] = useState("");
   const [voiceListening, setVoiceListening] = useState(false);
   const [nodePositions, setNodePositions] = useState({});
+  const [calendarView, setCalendarView] = useState("Monthly");
+  const [calendarCursor, setCalendarCursor] = useState(() => new Date());
+  const [calendarSearch, setCalendarSearch] = useState("");
+  const [showEventForm, setShowEventForm] = useState(false);
+  const [editingEventId, setEditingEventId] = useState(null);
+  const [calendarEvents, setCalendarEvents] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("orbit-calendar-events") || "[]"); } catch { return []; }
+  });
+  const [eventDraft, setEventDraft] = useState({ title: "", date: new Date().toISOString().slice(0, 10), start: "09:00", end: "09:30", location: "", notes: "", reminder: "default", recurrence: "none" });
 
   useEffect(() => {
     try { localStorage.setItem("orbit-brain-memories", JSON.stringify(entries)); } catch {}
@@ -86,6 +95,48 @@ export default function BrainWorkspace() {
         } catch { setNotice("Saved to the Calendar branch. Calendar storage could not be updated."); }
       } else setNotice("Filed under Calendar. Add a clear day and time, such as “Dentist tomorrow at 2pm”, to create a dated calendar entry.");
     } else setNotice("Added to your " + category + " branch.");
+  }
+
+  const calendarDate = (value) => {
+    const date = new Date(value + "T12:00:00");
+    return Number.isNaN(date.getTime()) ? new Date() : date;
+  };
+  const calendarDateKey = (date) => date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0");
+  const monthLabel = calendarCursor.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  const filteredCalendarEvents = calendarEvents.filter((event) => {
+    const q = calendarSearch.trim().toLowerCase();
+    return !q || [event.title, event.location, event.notes, event.category].some((part) => String(part || "").toLowerCase().includes(q));
+  }).sort((a,b) => (a.date + (a.start || "")).localeCompare(b.date + (b.start || "")));
+  const todayKey = calendarDateKey(new Date());
+  function moveCalendarCursor(amount, unit) {
+    setCalendarCursor((current) => {
+      const next = new Date(current);
+      if (unit === "day") next.setDate(next.getDate() + amount);
+      else if (unit === "week") next.setDate(next.getDate() + amount * 7);
+      else next.setMonth(next.getMonth() + amount);
+      return next;
+    });
+  }
+  function openNewEvent(date) {
+    setEditingEventId(null);
+    setEventDraft({ title: "", date: date || calendarDateKey(calendarCursor), start: "09:00", end: "09:30", location: "", notes: "", reminder: "default", recurrence: "none" });
+    setShowEventForm(true);
+  }
+  function openEditEvent(event) {
+    setEditingEventId(event.id);
+    setEventDraft({ title: event.title || "", date: event.date || todayKey, start: event.start || "", end: event.end || "", location: event.location || "", notes: event.notes || "", reminder: event.reminder || "default", recurrence: event.recurrence || "none" });
+    setShowEventForm(true);
+  }
+  function saveCalendarEvent(event) {
+    event.preventDefault();
+    if (!eventDraft.title.trim() || !eventDraft.date) return;
+    const record = { ...eventDraft, id: editingEventId || "orbit-event-" + Date.now(), title: eventDraft.title.trim(), category: "Personal", reminders: ["3 days", "2 days", "1 day", "12 hours", "2 hours"], updatedAt: Date.now() };
+    setCalendarEvents((current) => editingEventId ? current.map((item) => item.id === editingEventId ? record : item) : [...current, record]);
+    setShowEventForm(false); setEditingEventId(null); setNotice("Calendar event saved. Reminder times are stored, but phone notifications need the backend to be connected.");
+  }
+  function deleteCalendarEvent(id) {
+    setCalendarEvents((current) => current.filter((event) => event.id !== id));
+    setNotice("Calendar event deleted.");
   }
 
   function startEdit(entry) {
@@ -198,7 +249,27 @@ export default function BrainWorkspace() {
         ))}
       </nav>
 
-      <section className="orbit-branch-content" aria-live="polite">
+      {activeBranch === "Calendar" && <section className="orbit-calendar-workspace" aria-label="Calendar workspace">
+        <div className="orbit-calendar-heading">
+          <div><span className="orbit-small-eyebrow">YOUR SCHEDULE</span><h2>Calendar</h2><p>Plan ahead. Keep everything connected.</p></div>
+          <button type="button" className="orbit-calendar-add" onClick={() => openNewEvent(calendarDateKey(calendarCursor))}>＋ Add event</button>
+        </div>
+        <div className="orbit-calendar-toolbar">
+          <div className="orbit-calendar-views">{["Daily","Weekly","Monthly","Upcoming"].map((view) => <button key={view} type="button" className={calendarView === view ? "active" : ""} onClick={() => setCalendarView(view)}>{view}</button>)}</div>
+          <div className="orbit-calendar-nav"><button type="button" onClick={() => moveCalendarCursor(-1, calendarView === "Daily" ? "day" : calendarView === "Weekly" ? "week" : "month")} aria-label="Previous period">‹</button><button type="button" onClick={() => setCalendarCursor(new Date())}>Today</button><button type="button" onClick={() => moveCalendarCursor(1, calendarView === "Daily" ? "day" : calendarView === "Weekly" ? "week" : "month")} aria-label="Next period">›</button></div>
+        </div>
+        <div className="orbit-calendar-monthline"><h3>{calendarView === "Daily" ? calendarCursor.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"}) : calendarView === "Weekly" ? "Week of " + calendarCursor.toLocaleDateString("en-GB",{day:"numeric",month:"short"}) : calendarView === "Upcoming" ? "Coming up" : monthLabel}</h3><label className="orbit-calendar-search"><icon>⌕</icon><input value={calendarSearch} onChange={(e) => setCalendarSearch(e.target.value)} placeholder="Search events..." aria-label="Search calendar events" /></label></div>
+        {calendarView === "Monthly" && <div className="orbit-month-grid">
+          {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((day) => <div className="orbit-month-weekday" key={day}>{day}</div>)}
+          {(() => { const first = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth(), 1); const offset = (first.getDay()+6)%7; const days = new Date(calendarCursor.getFullYear(),calendarCursor.getMonth()+1,0).getDate(); return Array.from({length:Math.ceil((offset+days)/7)*7},(_,i)=>{ const n=i-offset+1; const valid=n>=1&&n<=days; const date=valid?new Date(calendarCursor.getFullYear(),calendarCursor.getMonth(),n):null; const key=date?calendarDateKey(date):""; const dayEvents=filteredCalendarEvents.filter((event)=>event.date===key); return <button type="button" key={i} className={"orbit-month-day "+(!valid?"outside":"")+(key===todayKey?" today":"")+(valid&&key<todayKey?" past":"")} disabled={!valid} onClick={()=>openNewEvent(key)}><span>{valid?n: ""}</span>{dayEvents.slice(0,2).map((event)=> <i key={event.id} title={event.title} onClick={(e)=>{e.stopPropagation();openEditEvent(event);}}>{event.title}</i>)}{dayEvents.length>2&&<small>+{dayEvents.length-2} more</small>}</button>; }); })()}
+        </div>}
+        {calendarView === "Daily" && <div className="orbit-calendar-agenda">{filteredCalendarEvents.filter((event)=>event.date===calendarDateKey(calendarCursor)).length ? filteredCalendarEvents.filter((event)=>event.date===calendarDateKey(calendarCursor)).map((event)=><button type="button" className="orbit-calendar-event-row" key={event.id} onClick={()=>openEditEvent(event)}><time>{event.start || "All day"}</time><span><strong>{event.title}</strong><small>{event.location || event.notes || "No additional details"}</small></span><b>↗</b></button>) : <div className="orbit-calendar-empty">Nothing scheduled for this day. Add an event to get started.</div>}</div>}
+        {calendarView === "Weekly" && <div className="orbit-week-grid">{Array.from({length:7},(_,i)=>{const date=new Date(calendarCursor);const mondayOffset=(date.getDay()+6)%7;date.setDate(date.getDate()-mondayOffset+i);const key=calendarDateKey(date);const list=filteredCalendarEvents.filter((event)=>event.date===key);return <div className={"orbit-week-column "+(key===todayKey?"today":"")} key={key}><button type="button" onClick={()=>openNewEvent(key)}><small>{date.toLocaleDateString("en-GB",{weekday:"short"})}</small><strong>{date.getDate()}</strong></button>{list.map((event)=><button type="button" className="orbit-week-event" key={event.id} onClick={()=>openEditEvent(event)}>{event.start&&<small>{event.start}</small>}{event.title}</button>)}</div>})}</div>}
+        {calendarView === "Upcoming" && <div className="orbit-calendar-agenda">{filteredCalendarEvents.filter((event)=>event.date>=todayKey).length ? filteredCalendarEvents.filter((event)=>event.date>=todayKey).map((event)=><button type="button" className="orbit-calendar-event-row" key={event.id} onClick={()=>openEditEvent(event)}><time>{calendarDate(event.date).toLocaleDateString("en-GB",{day:"2-digit",month:"short"})}<small>{event.start || "All day"}</small></time><span><strong>{event.title}</strong><small>{event.location || event.notes || "No additional details"}</small></span><b>↗</b></button>) : <div className="orbit-calendar-empty">No upcoming events yet. Add your next event.</div>}</div>}
+        <div className="orbit-calendar-bottomline"><span>{filteredCalendarEvents.length} saved {filteredCalendarEvents.length===1?"event":"events"}</span><span>Reminders: 3d · 2d · 1d · 12h · 2h</span></div>
+        {showEventForm && <div className="orbit-event-form-wrap"><form className="orbit-event-form" onSubmit={saveCalendarEvent}><div className="orbit-event-form-heading"><h3>{editingEventId?"Edit event":"New event"}</h3><button type="button" onClick={()=>setShowEventForm(false)} aria-label="Close event form">×</button></div><label>Event title<input autoFocus value={eventDraft.title} onChange={(e)=>setEventDraft({...eventDraft,title:e.target.value})} placeholder="What is happening?" required /></label><div className="orbit-event-fields"><label>Date<input type="date" value={eventDraft.date} onChange={(e)=>setEventDraft({...eventDraft,date:e.target.value})} required /></label><label>Repeats<select value={eventDraft.recurrence} onChange={(e)=>setEventDraft({...eventDraft,recurrence:e.target.value})}><option value="none">Does not repeat</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></label><label>Start time<input type="time" value={eventDraft.start} onChange={(e)=>setEventDraft({...eventDraft,start:e.target.value})} /></label><label>End time<input type="time" value={eventDraft.end} onChange={(e)=>setEventDraft({...eventDraft,end:e.target.value})} /></label></div><label>Location<input value={eventDraft.location} onChange={(e)=>setEventDraft({...eventDraft,location:e.target.value})} placeholder="Add a location" /></label><label>Notes<textarea rows={3} value={eventDraft.notes} onChange={(e)=>setEventDraft({...eventDraft,notes:e.target.value})} placeholder="Details, people, or anything to remember" /></label><div className="orbit-event-reminder-note"><icon>🔔</icon><span>Default reminders: 3 days, 2 days, 1 day, 12 hours and 2 hours before. Phone delivery will be connected with the backend.</span></div><div className="orbit-event-form-actions">{editingEventId&&<button type="button" className="orbit-delete-button" onClick={()=>{deleteCalendarEvent(editingEventId);setShowEventForm(false);}}>Delete event</button>}<button type="button" className="orbit-secondary-button" onClick={()=>setShowEventForm(false)}>Cancel</button><button type="submit" className="orbit-primary-button">Save event</button></div></form></div>}
+      </section>}
+      <section className={"orbit-branch-content" + (activeBranch === "Calendar" ? " orbit-branch-content-hidden" : "")} aria-live="polite">
         <div className="orbit-branch-content-heading"><div><span className="orbit-small-eyebrow">BRAIN BRANCH</span><h2>{activeBranch === "All" ? "Everything connected" : activeBranch}</h2></div><span className="orbit-entry-count">{visibleEntries.length} {visibleEntries.length === 1 ? "entry" : "entries"}</span></div>
         <div className="orbit-entry-list">
           {visibleEntries.length ? visibleEntries.map((entry) => <button type="button" key={entry.id} className={"orbit-entry-row " + (selected?.id === entry.id ? "selected" : "")} onClick={() => { setSelectedId(entry.id); setEditingId(null); }}><span className="orbit-entry-category">{entry.category}</span><span className="orbit-entry-title">{entry.title}</span><span className="orbit-entry-arrow">↗</span></button>) : <div className="orbit-empty-branch">Nothing filed here yet. Add something above and Orbit will place it in this branch.</div>}
