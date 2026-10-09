@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react";
 import "./index.css";
+import BrainWorkspace from "./BrainWorkspace.jsx";
 
 const initialTasks = [
   { id: 1, title: "Review today's priorities", time: "09:00", done: false },
@@ -220,23 +221,7 @@ function App() {
             </>
           )}
 
-          {page === "Brain" && (
-            <section className="subpage">
-              <div className="eyebrow"><span className="pulse" /> THE THINKING SPACE</div>
-              <h1>Your <span>Brain.</span></h1>
-              <p className="subpage-intro">A home for ideas, notes and things you don't want to lose.</p>
-              <div className="capture-panel">
-                <h2>What's on your mind?</h2>
-                <p className="muted">Capture it now. We'll build smarter sorting and connected memory next.</p>
-                <form className="capture-form" onSubmit={addCapture}>
-                  <span className="capture-spark">✧</span>
-                  <input value={capture} onChange={(event) => setCapture(event.target.value)} placeholder="An idea, thought or something to remember..." />
-                  <button type="submit">Capture ↗</button>
-                </form>
-              </div>
-              <div className="content-card"><h2>Recently captured</h2><p className="muted">Your captured items currently appear in Tasks.</p>{tasks.slice(-5).reverse().map((task) => <div className="simple-row" key={task.id}><span>✳</span>{task.title}</div>)}</div>
-            </section>
-          )}
+          {page === "Brain" && <BrainWorkspace />}
 
           {page === "Tasks" && (
             <section className="subpage">
