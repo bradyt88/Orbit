@@ -61,7 +61,7 @@ export default function CalendarWorkspace() {
     if (!form.title.trim() || !form.date || !form.start || !form.end) { setNotice("Add a title, date and start/end time."); return; }
     if (form.end <= form.start) { setNotice("The end time must be after the start time."); return; }
     const next = { ...form, title: form.title.trim(), id: editingId ?? `event-${Date.now()}`, demo: false };
-    setEvents((current) => editingId ? current.map((event) => event.id === editingId ? next : event) : [...current.filter((event) => !event.demo), next]);
+    setEvents((current) => editingId ? current.map((event) => event.id === editingId ? next : event) : [...current, next]);
     setSelectedDate(form.date); setView("Day"); setShowForm(false); setEditingId(null); setNotice(editingId ? "Event updated on this device." : "Event saved on this device.");
   }
   function deleteEvent(id) { setEvents((current) => current.filter((event) => event.id !== id)); setShowForm(false); setEditingId(null); setNotice("Event deleted."); }
