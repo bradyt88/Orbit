@@ -695,3 +695,14 @@ button:focus-visible, input:focus-visible { outline-color: #ffbd58; }
 @media (prefers-reduced-motion: reduce) {
   .orbit-space-node { animation: none !important; translate: 0 0; }
 }
+
+
+/* Capture controls and draggable Orbit nodes */
+.orbit-voice-row { display:flex; align-items:center; gap:12px; padding:0 16px 12px; color:#9c8979; font-size:10px; }
+.orbit-voice-button { display:inline-flex; align-items:center; gap:7px; padding:8px 13px; border:1px solid #a35c37; border-radius:22px; background:linear-gradient(120deg,#24100f,#160b0c); color:#ffd69a; font-size:11px; cursor:pointer; box-shadow:0 0 14px #ff6b3918; }
+.orbit-voice-button span { font-size:14px; }
+.orbit-voice-button:hover,.orbit-voice-button.listening { border-color:#ff5367; box-shadow:0 0 18px #ff354b52; }
+.orbit-space-node { cursor:grab; user-select:none; -webkit-user-select:none; }
+.orbit-space-node:active { cursor:grabbing; }
+.orbit-branches-compact { display:flex; flex-wrap:wrap; justify-content:center; }
+@media(max-width:600px) { .orbit-voice-row { padding:0 10px 12px; flex-wrap:wrap; } }
