@@ -60,6 +60,8 @@ export default function BrainWorkspace() {
   const [familyMode, setFamilyMode] = useState("overview");
   const [familyFocusId, setFamilyFocusId] = useState(null);
   const [treeFullscreen, setTreeFullscreen] = useState(false);
+  const [treeNodePositions, setTreeNodePositions] = useState(() => { try { return JSON.parse(localStorage.getItem("orbit-family-tree-positions") || "{}"); } catch { return {}; } });
+  const [draggingTreePerson, setDraggingTreePerson] = useState(null);
   const [calendarView, setCalendarView] = useState("Monthly");
   const [calendarCursor, setCalendarCursor] = useState(() => new Date());
   const [calendarSearch, setCalendarSearch] = useState("");
@@ -73,6 +75,8 @@ export default function BrainWorkspace() {
   useEffect(() => {
     try { localStorage.setItem("orbit-brain-memories", JSON.stringify(entries)); } catch {}
   }, [entries]);
+
+  useEffect(() => { try { localStorage.setItem("orbit-family-tree-positions", JSON.stringify(treeNodePositions)); } catch {} }, [treeNodePositions]);
 
   useEffect(() => {
     if (!treeFullscreen) return;
@@ -215,12 +219,25 @@ export default function BrainWorkspace() {
   }
   function removeFamilyLink(id) { setFamilyLinks((current) => current.filter((link) => link.id !== id)); setNotice("Relationship removed."); }
   const treePeople = familyMode === "overview" || !familyFocusId ? people : people.filter((person) => person.id === familyFocusId || familyLinks.some((link) => (link.from === familyFocusId && link.to === person.id) || (link.to === familyFocusId && link.from === person.id)));
-  const treeNodes = treePeople.map((person, index) => {
-    const count = treePeople.length;
-    const x = count <= 1 ? 50 : 8 + (index * (84 / (count - 1)));
-    const y = index === 0 ? 43 : 25 + ((index % 3) * 18);
-    return { ...person, x, y };
+  const selfPerson = treePeople.find((person) => person.isSelf || /^(me|myself|self|you)$/i.test(String(person.relationship || "").trim()) || /^(me|myself|self|you)$/i.test(String(person.preferredName || person.name || "").trim()));
+  const outerTreePeople = treePeople.filter((person) => person.id !== selfPerson?.id);
+  const treeNodes = outerTreePeople.map((person, index) => {
+    const count = outerTreePeople.length;
+    const angle = (Math.PI * 2 * index / Math.max(count, 1)) - Math.PI / 2;
+    const radiusX = count > 10 ? 39 : count > 5 ? 34 : 28;
+    const radiusY = count > 10 ? 34 : count > 5 ? 30 : 25;
+    const defaults = { x: 50 + Math.cos(angle) * radiusX, y: 50 + Math.sin(angle) * radiusY };
+    const saved = treeNodePositions[person.id];
+    return { ...person, x: saved?.x ?? defaults.x, y: saved?.y ?? defaults.y };
   });
+  function moveTreePerson(event, person) {
+    if (!draggingTreePerson || draggingTreePerson !== person.id) return;
+    const bounds = event.currentTarget.closest(".orbit-living-tree")?.getBoundingClientRect();
+    if (!bounds) return;
+    const x = Math.max(5, Math.min(95, ((event.clientX - bounds.left) / bounds.width) * 100));
+    const y = Math.max(8, Math.min(90, ((event.clientY - bounds.top) / bounds.height) * 100));
+    setTreeNodePositions((current) => ({ ...current, [person.id]: { x, y } }));
+  }
   function startEdit(entry) {
     setEditingId(entry.id); setEditTitle(entry.title); setEditContent(entry.content); setEditBranch(entry.category);
   }
@@ -379,7 +396,8 @@ export default function BrainWorkspace() {
               {Array.from({length:24},(_,i)=><circle key={"ember-"+i} className="orbit-tree-ember" cx={12+(i*37)%76} cy={10+(i*23)%78} r={i%4===0?".38":".2"} style={{animationDelay:(i%9)*-.7+"s"}}/>)}
             </svg>
             <div className="orbit-tree-root-label"><span>ROOTS</span><i/></div>
-            {treeNodes.map((person,index)=><button type="button" key={person.id} className={"orbit-tree-person "+(familyFocusId===person.id?"focused":"")+(selectedPersonId===person.id?" selected":"")} style={{left:person.x+"%",top:person.y+"%","--tree-delay":(-index*.35)+"s"}} onClick={()=>{setSelectedPersonId(person.id);setFamilyFocusId(person.id);setFamilyMode("focus");}}><span className="orbit-tree-person-orb"><span>{(person.preferredName||person.name).trim().charAt(0).toUpperCase()}</span><i/></span><strong>{person.preferredName||person.name}</strong><small>{person.relationship||"Family member"}</small></button>)}
+            <button type="button" className="orbit-tree-person orbit-tree-self" aria-label="Open your personal profile" onClick={()=>{if(selfPerson){setSelectedPersonId(selfPerson.id);setActiveBranch("People");}else{setActiveBranch("People");setSelectedPersonId(null);setNotice("Add your own profile in People, then mark the relationship as Me to show your profile here.");}}}><span className="orbit-tree-person-orb"><span>{selfPerson?(selfPerson.preferredName||selfPerson.name).trim().charAt(0).toUpperCase():"Y"}</span><i/></span><strong>{selfPerson?(selfPerson.preferredName||selfPerson.name):"You"}</strong><small>Personal profile</small></button>
+            {treeNodes.map((person,index)=><button type="button" key={person.id} className={"orbit-tree-person draggable-tree-person "+(familyFocusId===person.id?"focused":"")+(selectedPersonId===person.id?" selected":"")} style={{left:person.x+"%",top:person.y+"%","--tree-delay":(-index*.35)+"s",touchAction:"none"}} onPointerDown={(event)=>{event.currentTarget.setPointerCapture(event.pointerId);setDraggingTreePerson(person.id);}} onPointerMove={(event)=>moveTreePerson(event,person)} onPointerUp={()=>setDraggingTreePerson(null)} onPointerCancel={()=>setDraggingTreePerson(null)} onClick={()=>{if(draggingTreePerson)return;setSelectedPersonId(person.id);setFamilyFocusId(person.id);setFamilyMode("focus");}}><span className="orbit-tree-person-orb"><span>{(person.preferredName||person.name).trim().charAt(0).toUpperCase()}</span><i/></span><strong>{person.preferredName||person.name}</strong><small>{person.relationship||"Family member"}</small></button>)}
             {!people.length&&<div className="orbit-tree-empty"><span className="orbit-tree-seed">✦</span><h3>Your family tree starts here</h3><p>Add the people who matter to you, then connect them to grow the branches.</p><button type="button" className="orbit-calendar-add" onClick={()=>{setActiveBranch("People");openNewPerson();}}>＋ Add first person</button></div>}
           </div>
           {selectedPerson&&<div className="orbit-tree-selected-card"><div><span className="orbit-small-eyebrow">SELECTED BRANCH</span><h3>{selectedPerson.preferredName||selectedPerson.name}</h3><p>{selectedPerson.relationship||"Relationship not set"}{selectedPerson.birthday?" · Birthday "+new Date(selectedPerson.birthday+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"}):""}</p></div><button type="button" className="orbit-secondary-button" onClick={()=>setActiveBranch("People")}>Open profile ↗</button></div>}
