@@ -49,6 +49,16 @@ export default function BrainWorkspace() {
   const [notice, setNotice] = useState("");
   const [voiceListening, setVoiceListening] = useState(false);
   const [nodePositions, setNodePositions] = useState({});
+  const [people, setPeople] = useState(() => { try { return JSON.parse(localStorage.getItem("orbit-people") || "[]"); } catch { return []; } });
+  const [familyLinks, setFamilyLinks] = useState(() => { try { return JSON.parse(localStorage.getItem("orbit-family-links") || "[]"); } catch { return []; } });
+  const [personSearch, setPersonSearch] = useState("");
+  const [selectedPersonId, setSelectedPersonId] = useState(null);
+  const [showPersonForm, setShowPersonForm] = useState(false);
+  const [editingPersonId, setEditingPersonId] = useState(null);
+  const [personDraft, setPersonDraft] = useState({ name: "", preferredName: "", relationship: "", birthday: "", email: "", phone: "", notes: "" });
+  const [linkDraft, setLinkDraft] = useState({ personId: "", label: "Parent" });
+  const [familyMode, setFamilyMode] = useState("overview");
+  const [familyFocusId, setFamilyFocusId] = useState(null);
   const [calendarView, setCalendarView] = useState("Monthly");
   const [calendarCursor, setCalendarCursor] = useState(() => new Date());
   const [calendarSearch, setCalendarSearch] = useState("");
@@ -140,6 +150,59 @@ export default function BrainWorkspace() {
     setNotice("Calendar event deleted.");
   }
 
+  const selectedPerson = people.find((person) => person.id === selectedPersonId) || null;
+  const visiblePeople = people.filter((person) => [person.name, person.preferredName, person.relationship, person.email].some((part) => String(part || "").toLowerCase().includes(personSearch.toLowerCase())));
+  function openNewPerson() {
+    setEditingPersonId(null);
+    setPersonDraft({ name: "", preferredName: "", relationship: "", birthday: "", email: "", phone: "", notes: "" });
+    setShowPersonForm(true);
+  }
+  function openEditPerson(person) {
+    setEditingPersonId(person.id);
+    setPersonDraft({ name: person.name || "", preferredName: person.preferredName || "", relationship: person.relationship || "", birthday: person.birthday || "", email: person.email || "", phone: person.phone || "", notes: person.notes || "" });
+    setShowPersonForm(true);
+  }
+  function savePerson(event) {
+    event.preventDefault();
+    if (!personDraft.name.trim()) return;
+    const id = editingPersonId || "person-" + Date.now();
+    const person = { ...personDraft, id, name: personDraft.name.trim(), createdAt: editingPersonId ? (people.find((item) => item.id === editingPersonId)?.createdAt || Date.now()) : Date.now(), updatedAt: Date.now() };
+    setPeople((current) => editingPersonId ? current.map((item) => item.id === editingPersonId ? person : item) : [...current, person]);
+    setSelectedPersonId(id); setFamilyFocusId(id); setShowPersonForm(false); setEditingPersonId(null);
+    if (person.birthday) {
+      const eventId = "birthday-" + id;
+      setCalendarEvents((current) => {
+        const found = current.some((item) => item.id === eventId);
+        const birthdayEvent = { id: eventId, title: (person.preferredName || person.name) + "'s birthday", date: person.birthday, start: "", end: "", category: "Personal", reminder: "default", reminders: ["3 days", "2 days", "1 day", "12 hours", "2 hours"], recurrence: "yearly", personId: id, linkedRecordType: "person-birthday", location: "", notes: "Birthday linked to " + person.name + "'s profile.", updatedAt: Date.now() };
+        return found ? current.map((item) => item.id === eventId ? { ...item, ...birthdayEvent } : item) : [...current, birthdayEvent];
+      });
+    } else setCalendarEvents((current) => current.filter((item) => item.id !== "birthday-" + id));
+    setNotice(editingPersonId ? "Person profile updated." : "Person added to Orbit.");
+  }
+  function deletePerson(id) {
+    const person = people.find((item) => item.id === id);
+    setPeople((current) => current.filter((item) => item.id !== id));
+    setFamilyLinks((current) => current.filter((link) => link.from !== id && link.to !== id));
+    setCalendarEvents((current) => current.map((item) => item.personId === id ? { ...item, personId: undefined, notes: (item.notes ? item.notes + " " : "") + "Person profile removed; event preserved." } : item));
+    setEntries((current) => current.map((entry) => entry.personId === id ? { ...entry, personId: undefined } : entry));
+    setSelectedPersonId(null); setFamilyFocusId(null); setNotice((person?.name || "Person") + " profile deleted. Linked events and memories have been preserved.");
+  }
+  function addFamilyLink(event) {
+    event.preventDefault();
+    if (!selectedPersonId || !linkDraft.personId || selectedPersonId === linkDraft.personId) return;
+    const exists = familyLinks.some((link) => (link.from === selectedPersonId && link.to === linkDraft.personId) || (link.to === selectedPersonId && link.from === linkDraft.personId));
+    if (exists) { setNotice("These people are already connected."); return; }
+    setFamilyLinks((current) => [...current, { id: "relationship-" + Date.now(), from: selectedPersonId, to: linkDraft.personId, label: linkDraft.label }]);
+    setFamilyFocusId(selectedPersonId); setNotice("Family relationship added.");
+  }
+  function removeFamilyLink(id) { setFamilyLinks((current) => current.filter((link) => link.id !== id)); setNotice("Relationship removed."); }
+  const treePeople = familyMode === "overview" || !familyFocusId ? people : people.filter((person) => person.id === familyFocusId || familyLinks.some((link) => (link.from === familyFocusId && link.to === person.id) || (link.to === familyFocusId && link.from === person.id)));
+  const treeNodes = treePeople.map((person, index) => {
+    const count = treePeople.length;
+    const x = count <= 1 ? 50 : 8 + (index * (84 / (count - 1)));
+    const y = index === 0 ? 43 : 25 + ((index % 3) * 18);
+    return { ...person, x, y };
+  });
   function startEdit(entry) {
     setEditingId(entry.id); setEditTitle(entry.title); setEditContent(entry.content); setEditBranch(entry.category);
   }
@@ -270,7 +333,29 @@ export default function BrainWorkspace() {
         <div className="orbit-calendar-bottomline"><span>{filteredCalendarEvents.length} saved {filteredCalendarEvents.length===1?"event":"events"}</span><span>Reminders: 3d · 2d · 1d · 12h · 2h</span></div>
         {showEventForm && <div className="orbit-event-form-wrap"><form className="orbit-event-form" onSubmit={saveCalendarEvent}><div className="orbit-event-form-heading"><h3>{editingEventId?"Edit event":"New event"}</h3><button type="button" onClick={()=>setShowEventForm(false)} aria-label="Close event form">×</button></div><label>Event title<input autoFocus value={eventDraft.title} onChange={(e)=>setEventDraft({...eventDraft,title:e.target.value})} placeholder="What is happening?" required /></label><div className="orbit-event-fields"><label>Date<input type="date" value={eventDraft.date} onChange={(e)=>setEventDraft({...eventDraft,date:e.target.value})} required /></label><label>Repeats<select value={eventDraft.recurrence} onChange={(e)=>setEventDraft({...eventDraft,recurrence:e.target.value})}><option value="none">Does not repeat</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></label><label>Start time<input type="time" value={eventDraft.start} onChange={(e)=>setEventDraft({...eventDraft,start:e.target.value})} /></label><label>End time<input type="time" value={eventDraft.end} onChange={(e)=>setEventDraft({...eventDraft,end:e.target.value})} /></label></div><label>Location<input value={eventDraft.location} onChange={(e)=>setEventDraft({...eventDraft,location:e.target.value})} placeholder="Add a location" /></label><label>Notes<textarea rows={3} value={eventDraft.notes} onChange={(e)=>setEventDraft({...eventDraft,notes:e.target.value})} placeholder="Details, people, or anything to remember" /></label><div className="orbit-event-reminder-note"><icon>🔔</icon><span>Default reminders: 3 days, 2 days, 1 day, 12 hours and 2 hours before. Phone delivery will be connected with the backend.</span></div><div className="orbit-event-form-actions">{editingEventId&&<button type="button" className="orbit-delete-button" onClick={()=>{deleteCalendarEvent(editingEventId);setShowEventForm(false);}}>Delete event</button>}<button type="button" className="orbit-secondary-button" onClick={()=>setShowEventForm(false)}>Cancel</button><button type="submit" className="orbit-primary-button">Save event</button></div></form></div>}
       </section>}
-      <section className={"orbit-branch-content" + (activeBranch === "Calendar" ? " orbit-branch-content-hidden" : "")} aria-live="polite">
+      {(activeBranch === "People" || activeBranch === "Family") && <section className="orbit-people-workspace" aria-label={activeBranch === "People" ? "People workspace" : "Family tree workspace"}>
+        <div className="orbit-people-heading"><div><span className="orbit-small-eyebrow">{activeBranch === "People" ? "YOUR CONNECTIONS" : "YOUR FAMILY UNIVERSE"}</span><h2>{activeBranch === "People" ? "People" : "Family Tree"}</h2><p>{activeBranch === "People" ? "One profile for every person who matters to you." : "A living tree, grown from your family connections."}</p></div>{activeBranch === "People" && <button type="button" className="orbit-calendar-add" onClick={openNewPerson}>＋ Add person</button>}</div>
+        {activeBranch === "People" ? <div className="orbit-people-layout">
+          <div className="orbit-people-directory"><label className="orbit-calendar-search"><span>⌕</span><input value={personSearch} onChange={(e)=>setPersonSearch(e.target.value)} placeholder="Find a person..." aria-label="Search people" /></label>
+            {visiblePeople.map((person)=><button type="button" key={person.id} className={"orbit-person-row "+(selectedPersonId===person.id?"selected":"")} onClick={()=>setSelectedPersonId(person.id)}><span className="orbit-person-avatar">{(person.preferredName||person.name).trim().charAt(0).toUpperCase()}</span><span className="orbit-person-row-copy"><strong>{person.preferredName||person.name}</strong><small>{person.relationship||"Relationship not set"}</small></span><span>›</span></button>)}
+            {!visiblePeople.length && <div className="orbit-calendar-empty">{people.length?"No people match your search yet.":"Your people directory is ready. Add your first person."}</div>}
+          </div>
+          <div className="orbit-person-detail">{selectedPerson ? <><div className="orbit-person-profile-top"><span className="orbit-person-avatar large">{(selectedPerson.preferredName||selectedPerson.name).trim().charAt(0).toUpperCase()}</span><div className="orbit-person-profile-title"><h3>{selectedPerson.preferredName||selectedPerson.name}</h3><p>{selectedPerson.relationship||"Relationship not set"}</p></div><button type="button" className="orbit-secondary-button" onClick={()=>openEditPerson(selectedPerson)}>Edit</button></div>
+            <div className="orbit-person-facts">{selectedPerson.birthday&&<div><small>Birthday</small><strong>{new Date(selectedPerson.birthday+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</strong></div>}{selectedPerson.email&&<div><small>Email</small><strong>{selectedPerson.email}</strong></div>}{selectedPerson.phone&&<div><small>Phone</small><strong>{selectedPerson.phone}</strong></div>}</div>
+            <div className="orbit-person-notes"><span className="orbit-small-eyebrow">NOTES & PREFERENCES</span><p>{selectedPerson.notes||"No notes yet. Edit this profile to add useful details Orbit can remember."}</p></div>
+            <div className="orbit-person-related"><span className="orbit-small-eyebrow">CONNECTED FAMILY</span>{familyLinks.filter((link)=>link.from===selectedPerson.id||link.to===selectedPerson.id).map((link)=>{const other=people.find((person)=>person.id===(link.from===selectedPerson.id?link.to:link.from));return other?<div className="orbit-person-link-row" key={link.id}><span>{other.preferredName||other.name}</span><small>{link.label}</small><button type="button" onClick={()=>removeFamilyLink(link.id)} aria-label={"Remove relationship with "+other.name}>×</button></div>:null})}
+              {people.filter((person)=>person.id!==selectedPerson.id).length>0&&<form className="orbit-link-person-form" onSubmit={addFamilyLink}><select value={linkDraft.personId} onChange={(e)=>setLinkDraft({...linkDraft,personId:e.target.value})} aria-label="Choose a person to connect"><option value="">Choose person…</option>{people.filter((person)=>person.id!==selectedPerson.id).map((person)=><option key={person.id} value={person.id}>{person.preferredName||person.name}</option>)}</select><select value={linkDraft.label} onChange={(e)=>setLinkDraft({...linkDraft,label:e.target.value})} aria-label="Relationship type"><option>Parent</option><option>Child</option><option>Partner</option><option>Sibling</option><option>Grandparent</option><option>Grandchild</option><option>Other family</option><option>Friend</option><option>Custom</option></select><button type="submit" className="orbit-secondary-button">＋ Link</button></form>}
+            </div><div className="orbit-person-profile-actions"><button type="button" className="orbit-delete-button" onClick={()=>deletePerson(selectedPerson.id)}>Delete profile</button><button type="button" className="orbit-secondary-button" onClick={()=>{setActiveBranch("Family");setFamilyFocusId(selectedPerson.id);}}>View in Family Tree ↗</button></div></> : <div className="orbit-calendar-empty">Select a person to view their profile, relationships and connected information.</div>}</div>
+        </div> : <><div className="orbit-tree-toolbar"><div className="orbit-calendar-views"><button type="button" className={familyMode==="overview"?"active":""} onClick={()=>setFamilyMode("overview")}>Full tree</button><button type="button" className={familyMode==="focus"?"active":""} onClick={()=>setFamilyMode("focus")}>Close family</button></div><div className="orbit-tree-toolbar-right">{familyMode==="focus"&&<select value={familyFocusId||""} onChange={(e)=>setFamilyFocusId(e.target.value)} aria-label="Focus family member"><option value="">Choose person…</option>{people.map((person)=><option key={person.id} value={person.id}>{person.preferredName||person.name}</option>)}</select>}<button type="button" className="orbit-calendar-add" onClick={()=>{setActiveBranch("People");openNewPerson();}}>＋ Add person</button></div></div>
+          <div className="orbit-living-tree"><div className="orbit-tree-glow" /><svg className="orbit-tree-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path className="orbit-tree-trunk" d="M50 100 C49 83 51 72 50 58 C48 46 35 39 22 27 M50 60 C52 44 65 40 79 24 M50 78 C38 72 29 67 17 54 M50 72 C63 67 73 61 86 48 M50 58 C50 44 50 29 50 14" />{familyLinks.map((link)=>{const a=treeNodes.find((node)=>node.id===link.from);const b=treeNodes.find((node)=>node.id===link.to);return a&&b?<path key={link.id} className="orbit-tree-link" d={"M "+a.x+" "+(a.y+4)+" Q "+((a.x+b.x)/2)+" "+(Math.min(a.y,b.y)-8)+" "+b.x+" "+(b.y+4)}/>:null;})}</svg>
+            {treeNodes.map((person,index)=><button type="button" key={person.id} className={"orbit-tree-person "+(familyFocusId===person.id?"focused":"")+(selectedPersonId===person.id?" selected":"")} style={{left:person.x+"%",top:person.y+"%","--tree-delay":(-index*.35)+"s"}} onClick={()=>{setSelectedPersonId(person.id);setFamilyFocusId(person.id);}}><span className="orbit-tree-person-orb"><span>{(person.preferredName||person.name).trim().charAt(0).toUpperCase()}</span><i/></span><strong>{person.preferredName||person.name}</strong><small>{person.relationship||"Family member"}</small></button>)}
+            {!people.length&&<div className="orbit-tree-empty"><span className="orbit-tree-seed">✦</span><h3>Your family tree starts here</h3><p>Add the people who matter to you, then connect them to grow the branches.</p><button type="button" className="orbit-calendar-add" onClick={()=>{setActiveBranch("People");openNewPerson();}}>＋ Add first person</button></div>}
+          </div>
+          {selectedPerson&&<div className="orbit-tree-selected-card"><div><span className="orbit-small-eyebrow">SELECTED BRANCH</span><h3>{selectedPerson.preferredName||selectedPerson.name}</h3><p>{selectedPerson.relationship||"Relationship not set"}{selectedPerson.birthday?" · Birthday "+new Date(selectedPerson.birthday+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"}):""}</p></div><button type="button" className="orbit-secondary-button" onClick={()=>setActiveBranch("People")}>Open profile ↗</button></div>}
+        </>}
+        {showPersonForm&&<div className="orbit-event-form-wrap"><form className="orbit-event-form" onSubmit={savePerson}><div className="orbit-event-form-heading"><h3>{editingPersonId?"Edit person":"Add a person"}</h3><button type="button" onClick={()=>setShowPersonForm(false)} aria-label="Close person form">×</button></div><label>Full name<input autoFocus value={personDraft.name} onChange={(e)=>setPersonDraft({...personDraft,name:e.target.value})} placeholder="Their name" required /></label><div className="orbit-event-fields"><label>Preferred name<input value={personDraft.preferredName} onChange={(e)=>setPersonDraft({...personDraft,preferredName:e.target.value})} placeholder="What you call them" /></label><label>Relationship to you<input value={personDraft.relationship} onChange={(e)=>setPersonDraft({...personDraft,relationship:e.target.value})} placeholder="e.g. sister, friend, manager" /></label><label>Birthday<input type="date" value={personDraft.birthday} onChange={(e)=>setPersonDraft({...personDraft,birthday:e.target.value})}/></label><label>Email<input type="email" value={personDraft.email} onChange={(e)=>setPersonDraft({...personDraft,email:e.target.value})} /></label><label>Phone<input type="tel" value={personDraft.phone} onChange={(e)=>setPersonDraft({...personDraft,phone:e.target.value})} /></label></div><label>Notes and preferences<textarea rows={3} value={personDraft.notes} onChange={(e)=>setPersonDraft({...personDraft,notes:e.target.value})} placeholder="Details you want Orbit to remember" /></label><div className="orbit-event-form-actions"><button type="button" className="orbit-secondary-button" onClick={()=>setShowPersonForm(false)}>Cancel</button><button type="submit" className="orbit-primary-button">Save person</button></div></form></div>}
+      </section>}
+      <section className={"orbit-branch-content" + (["Calendar","People","Family"].includes(activeBranch) ? " orbit-branch-content-hidden" : "")} aria-live="polite">
         <div className="orbit-branch-content-heading"><div><span className="orbit-small-eyebrow">BRAIN BRANCH</span><h2>{activeBranch === "All" ? "Everything connected" : activeBranch}</h2></div><span className="orbit-entry-count">{visibleEntries.length} {visibleEntries.length === 1 ? "entry" : "entries"}</span></div>
         <div className="orbit-entry-list">
           {visibleEntries.length ? visibleEntries.map((entry) => <button type="button" key={entry.id} className={"orbit-entry-row " + (selected?.id === entry.id ? "selected" : "")} onClick={() => { setSelectedId(entry.id); setEditingId(null); }}><span className="orbit-entry-category">{entry.category}</span><span className="orbit-entry-title">{entry.title}</span><span className="orbit-entry-arrow">↗</span></button>) : <div className="orbit-empty-branch">Nothing filed here yet. Add something above and Orbit will place it in this branch.</div>}
