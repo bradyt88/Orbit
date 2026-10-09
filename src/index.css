@@ -921,3 +921,17 @@ button:focus-visible, input:focus-visible { outline-color: #ffbd58; }
  .orbit-tree-close-fullscreen { top:10px; left:10px; }
  .orbit-living-tree.fullscreen-tree .orbit-tree-person { transform:translate(-50%,-50%) scale(.82); }
 }
+
+
+/* Family tree: movable relatives around a fixed personal profile */
+.orbit-tree-person.draggable-tree-person { cursor:grab; user-select:none; -webkit-user-select:none; }
+.orbit-tree-person.draggable-tree-person:active { cursor:grabbing; }
+.orbit-tree-person.orbit-tree-self { position:absolute; left:50%; top:50%; z-index:8; transform:translate(-50%,-50%); animation:none; cursor:pointer; }
+.orbit-tree-person.orbit-tree-self .orbit-tree-person-orb { width:76px; height:76px; border:2px solid #ffe0a0; background:radial-gradient(circle at 35% 25%,#ffe5a3 0%,#b65a37 32%,#641d35 65%,#160a18 100%); box-shadow:0 0 0 7px #ffcc6520,0 0 34px #ffc45da8,inset 0 0 20px #ffe2a077; }
+.orbit-tree-person.orbit-tree-self strong { color:#fff0ce; border-color:#f7c875a0; box-shadow:0 0 18px #ffba543d; }
+.orbit-tree-person.orbit-tree-self small { color:#ffe0b1; }
+.orbit-living-tree.fullscreen-tree .orbit-tree-person.orbit-tree-self { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(1.08); }
+@media(max-width:760px) {
+ .orbit-tree-person.orbit-tree-self .orbit-tree-person-orb { width:62px;height:62px; }
+ .orbit-living-tree.fullscreen-tree .orbit-tree-person.orbit-tree-self { transform:translate(-50%,-50%) scale(.92); }
+}
