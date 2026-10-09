@@ -100,44 +100,80 @@ export default function BrainWorkspace() {
     setSelectedId(null); setEditingId(null); setNotice("Entry removed from your Brain.");
   }
 
+  const nodeLayout = [
+    { name: "Tasks", icon: "✓", x: 30, y: 17, tone: "gold", hint: "To-do · Projects" },
+    { name: "Calendar", icon: "▦", x: 50, y: 7, tone: "red", hint: "Events · Reminders" },
+    { name: "Family", icon: "♟", x: 70, y: 17, tone: "gold", hint: "Plans · People" },
+    { name: "Work", icon: "▣", x: 20, y: 36, tone: "gold", hint: "Meetings · Career" },
+    { name: "Creative", icon: "♫", x: 80, y: 34, tone: "red", hint: "Music · Ideas" },
+    { name: "Finance", icon: "◉", x: 14, y: 56, tone: "gold", hint: "Budgets · Bills" },
+    { name: "Health", icon: "♡", x: 24, y: 74, tone: "red", hint: "Wellbeing · Appointments" },
+    { name: "Ideas", icon: "▤", x: 76, y: 70, tone: "red", hint: "Notes · Inspiration" },
+    { name: "Learning", icon: "▱", x: 35, y: 86, tone: "gold", hint: "Skills · Knowledge" },
+    { name: "Goals", icon: "◎", x: 65, y: 86, tone: "gold", hint: "Milestones · Progress" },
+    { name: "Travel", icon: "✈", x: 87, y: 55, tone: "gold", hint: "Trips · Adventures" },
+    { name: "Moments", icon: "♡", x: 50, y: 94, tone: "red", hint: "Memories · Life" },
+    { name: "People", icon: "♧", x: 50, y: 20, tone: "gold", hint: "Friends · Contacts" }
+  ];
   return (
-    <main className="orbit-one-screen">
+    <main className="orbit-one-screen orbit-cosmos-screen">
+      <div className="orbit-space-stars" aria-hidden="true" />
       <header className="orbit-minimal-header">
         <div className="orbit-wordmark"><span className="orbit-wordmark-symbol">◉</span><span>ORBIT</span></div>
-        <span className="orbit-header-caption">YOUR LIFE, CONNECTED</span>
+        <span className="orbit-header-caption">YOUR LIFE. CONNECTED.</span>
       </header>
 
-      <section className="orbit-brain-core" aria-label="Orbit Brain">
-        <img className="orbit-core-image" src={import.meta.env.BASE_URL + "images/brain/orbit-brain.png"} alt="Orbit's glowing gold and crimson neural brain" />
-        <div className="orbit-core-caption"><span className="orbit-live-dot" /> YOUR BRAIN IS THE CENTRE</div>
+      <section className="orbit-cosmos" aria-label="Interactive Orbit Brain universe">
+        <div className="orbit-cosmos-nebula" aria-hidden="true" />
+        <div className="orbit-energy-floor" aria-hidden="true"><i /><i /><i /><i /></div>
+        <svg className="orbit-cosmos-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <ellipse cx="50" cy="48" rx="43" ry="34" />
+          <ellipse cx="50" cy="48" rx="35" ry="26" transform="rotate(-25 50 48)" />
+          <ellipse cx="50" cy="48" rx="35" ry="26" transform="rotate(25 50 48)" />
+          {nodeLayout.map((node) => <line key={node.name} x1="50" y1="48" x2={node.x} y2={node.y} className={node.tone === "red" ? "red-line" : ""} />)}
+        </svg>
+        <div className="orbit-central-brain">
+          <div className="orbit-brain-aura" />
+          <div className="orbit-brain-ring orbit-brain-ring-one" />
+          <div className="orbit-brain-ring orbit-brain-ring-two" />
+          <img className="orbit-core-image" src={import.meta.env.BASE_URL + "images/brain/orbit-brain.png"} alt="Orbit's glowing gold and crimson brain" />
+          <div className="orbit-core-caption"><span className="orbit-live-dot" /> YOUR BRAIN IS THE CENTRE</div>
+        </div>
+        {nodeLayout.map((node) => (
+          <button key={node.name} type="button" style={{ left: node.x + "%", top: node.y + "%" }}
+            className={"orbit-space-node " + node.tone + (activeBranch === node.name ? " selected" : "")}
+            onClick={() => { setActiveBranch(node.name); setEditingId(null); document.querySelector(".orbit-branch-content")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+            aria-label={"Open " + node.name + " branch"}>
+            <span className="orbit-space-node-orb"><span>{node.icon}</span><i /></span>
+            <strong>{node.name}</strong><small>{node.hint}</small>
+            {node.name !== "Creative" && node.name !== "Travel" && node.name !== "Health" && <em>{entries.filter((entry) => entry.category === node.name).length}</em>}
+          </button>
+        ))}
+        <div className="orbit-cosmos-caption"><span /> CONNECTED THROUGH YOUR BRAIN <span /></div>
       </section>
 
-      <nav className="orbit-branches" aria-label="Brain branches">
+      <nav className="orbit-branches orbit-branches-compact" aria-label="Brain branches">
         {branches.map((branch) => (
-          <button key={branch} type="button" className={`orbit-branch-pill ${activeBranch === branch ? "active" : ""}`} onClick={() => { setActiveBranch(branch); setEditingId(null); }}>
-            {branch}
-            {branch !== "All" && <span>{entries.filter((entry) => entry.category === branch).length}</span>}
+          <button key={branch} type="button" className={"orbit-branch-pill " + (activeBranch === branch ? "active" : "")} onClick={() => { setActiveBranch(branch); setEditingId(null); }}>
+            {branch}{branch !== "All" && <span>{entries.filter((entry) => entry.category === branch).length}</span>}
           </button>
         ))}
       </nav>
 
-      <section className="orbit-capture-area">
-        <div className="orbit-section-title"><span className="orbit-gold-spark">✦</span><div><h1>Ask or add to your Brain</h1><p>Say it naturally. Orbit will organise it into a branch.</p></div></div>
+      <section className="orbit-capture-area orbit-cosmic-capture">
+        <div className="orbit-section-title"><span className="orbit-gold-spark">✦</span><div><h1>Ask or add to your Brain...</h1><p>Tell Orbit anything — an event, a task, a goal, a thought. It will organise it for you.</p></div></div>
         <form className="orbit-capture-form" onSubmit={addEntry}>
-          <textarea value={input} onChange={(event) => setInput(event.target.value)} placeholder="Tell Orbit anything… an event, a task, a goal, a moment, an idea…" aria-label="Ask or add to your Brain" rows={2} />
-          <div className="orbit-capture-bottom">
-            <span className="orbit-input-hint">TYPE WHAT'S ON YOUR MIND</span>
-            <button type="submit" disabled={!input.trim()}><span>＋</span> Add to Brain <span>↗</span></button>
-          </div>
+          <textarea value={input} onChange={(event) => setInput(event.target.value)} placeholder="Tell Orbit anything… what's on your mind?" aria-label="Ask or add to your Brain" rows={2} />
+          <div className="orbit-capture-bottom"><span className="orbit-input-hint">✦ YOUR LIFE, READY TO CONNECT</span><button type="submit" disabled={!input.trim()}><span>↗</span> Add to Brain</button></div>
         </form>
-        <div className="orbit-quick-add">{[{label:"+ Event",value:"Event: "},{label:"+ Task",value:"Task: "},{label:"+ Goal",value:"Goal: "},{label:"+ Moment",value:"Moment: "},{label:"+ Idea",value:"Idea: "}].map((item) => <button type="button" key={item.label} onClick={() => setInput((current) => current || item.value)}>{item.label}</button>)}</div>
+        <div className="orbit-quick-add">{[{label:"▦ Add event",value:"Event: "},{label:"✓ Add task",value:"Task: "},{label:"◎ Add goal",value:"Goal: "},{label:"♡ Add moment",value:"Moment: "},{label:"✧ Add idea",value:"Idea: "}].map((item) => <button type="button" key={item.label} onClick={() => setInput((current) => current || item.value)}>{item.label}</button>)}</div>
         {notice && <p className="orbit-action-notice" role="status">{notice}</p>}
       </section>
 
       <section className="orbit-branch-content" aria-live="polite">
         <div className="orbit-branch-content-heading"><div><span className="orbit-small-eyebrow">BRAIN BRANCH</span><h2>{activeBranch === "All" ? "Everything connected" : activeBranch}</h2></div><span className="orbit-entry-count">{visibleEntries.length} {visibleEntries.length === 1 ? "entry" : "entries"}</span></div>
         <div className="orbit-entry-list">
-          {visibleEntries.length ? visibleEntries.map((entry) => <button type="button" key={entry.id} className={`orbit-entry-row ${selected?.id === entry.id ? "selected" : ""}`} onClick={() => { setSelectedId(entry.id); setEditingId(null); }}><span className="orbit-entry-category">{entry.category}</span><span className="orbit-entry-title">{entry.title}</span><span className="orbit-entry-arrow">↗</span></button>) : <div className="orbit-empty-branch">Nothing filed here yet. Add something above and Orbit will place it in this branch.</div>}
+          {visibleEntries.length ? visibleEntries.map((entry) => <button type="button" key={entry.id} className={"orbit-entry-row " + (selected?.id === entry.id ? "selected" : "")} onClick={() => { setSelectedId(entry.id); setEditingId(null); }}><span className="orbit-entry-category">{entry.category}</span><span className="orbit-entry-title">{entry.title}</span><span className="orbit-entry-arrow">↗</span></button>) : <div className="orbit-empty-branch">Nothing filed here yet. Add something above and Orbit will place it in this branch.</div>}
         </div>
         {selected && <article className="orbit-entry-detail">
           {editingId === selected.id ? <form className="orbit-edit-form" onSubmit={saveEdit}><label>Title<input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} required /></label><label>Branch<select value={editBranch} onChange={(event) => setEditBranch(event.target.value)}>{branches.filter((branch) => branch !== "All").map((branch) => <option key={branch}>{branch}</option>)}</select></label><label>Details<textarea rows={4} value={editContent} onChange={(event) => setEditContent(event.target.value)} /></label><div className="orbit-detail-actions"><button type="button" onClick={() => setEditingId(null)} className="orbit-secondary-button">Cancel</button><button type="submit" className="orbit-primary-button">Save changes</button></div></form> : <><div className="orbit-detail-top"><span className="orbit-entry-category">{selected.category}</span><div className="orbit-detail-actions"><button type="button" className="orbit-secondary-button" onClick={() => startEdit(selected)}>Edit</button><button type="button" className="orbit-delete-button" onClick={() => removeEntry(selected.id)}>Delete</button></div></div><h3>{selected.title}</h3><p>{selected.content}</p></>}
