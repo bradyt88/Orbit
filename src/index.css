@@ -935,3 +935,41 @@ button:focus-visible, input:focus-visible { outline-color: #ffbd58; }
  .orbit-tree-person.orbit-tree-self .orbit-tree-person-orb { width:62px;height:62px; }
  .orbit-living-tree.fullscreen-tree .orbit-tree-person.orbit-tree-self { transform:translate(-50%,-50%) scale(.92); }
 }
+
+
+/* INBOX + APPROVED REPLY PREVIEW */
+.orbit-inbox-workspace { max-width:1150px; margin:22px auto 18px; padding:clamp(14px,2.5vw,26px); border:1px solid #50301f; border-radius:18px; background:linear-gradient(145deg,#100b0d 0%,#090709 65%,#10090c 100%); box-shadow:0 0 35px #ff79300b,inset 0 1px #ffcb6b0c; color:#ead9c8; }
+.orbit-inbox-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:20px; }
+.orbit-inbox-heading h2 { margin:5px 0 4px; color:#f7e5cd; font:600 clamp(22px,3vw,32px) 'Space Grotesk',sans-serif; }
+.orbit-inbox-heading p { margin:0; color:#a99483; font-size:12px; line-height:1.6; }
+.orbit-demo-badge { flex-shrink:0; padding:7px 9px; border:1px solid #936a3c; border-radius:99px; color:#f0c27d; background:#28170f; font-size:9px; letter-spacing:.08em; }
+.orbit-inbox-layout { display:grid; grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr); gap:14px; }
+.orbit-email-card,.orbit-reply-card { min-width:0; padding:clamp(13px,2vw,20px); border:1px solid #3c2920; border-radius:13px; background:linear-gradient(150deg,#130d0e,#0a0809); }
+.orbit-email-top { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.orbit-email-avatar { display:grid; place-items:center; flex:0 0 38px; width:38px; height:38px; border:1px solid #c28c4a; border-radius:50%; color:#ffe0a0; background:radial-gradient(circle at 35% 25%,#704025,#241018 72%); font-weight:700; }
+.orbit-email-top>div { display:flex; flex:1; min-width:0; flex-direction:column; gap:4px; }
+.orbit-email-top strong { color:#f4e0c9; font-size:12px; }
+.orbit-email-top small { color:#a99483; font-size:10px; overflow-wrap:anywhere; }
+.orbit-email-priority { padding:5px 7px; border:1px solid #8a4538; border-radius:99px; color:#ffb39d; background:#361718; font-size:9px; }
+.orbit-email-card h3 { margin:22px 0 10px; color:#ffe7ce; font:600 19px 'Space Grotesk',sans-serif; }
+.orbit-email-body { color:#d2bda8; font-size:13px; line-height:1.8; }
+.orbit-context-note { margin-top:24px; padding:12px; border:1px solid #594023; border-radius:9px; background:#21150f; }
+.orbit-context-note span { color:#f1c577; font-size:9px; letter-spacing:.12em; }
+.orbit-context-note p { margin:7px 0 0; color:#c3a78a; font-size:11px; line-height:1.7; }
+.orbit-reply-title { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; }
+.orbit-reply-title h3 { margin:5px 0 0; color:#ffe7ce; font:600 18px 'Space Grotesk',sans-serif; }
+.orbit-lock-icon { display:grid; place-items:center; width:34px; height:34px; border:1px solid #624329; border-radius:50%; color:#f3c477; font-size:21px; }
+.orbit-reply-field { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; color:#c7a783; font-size:10px; }
+.orbit-reply-field input,.orbit-reply-field textarea { width:100%; box-sizing:border-box; padding:10px 11px; border:1px solid #4a3327; border-radius:8px; outline:0; background:#090708; color:#f2e2d1; font:12px/1.65 Inter,system-ui,sans-serif; }
+.orbit-reply-field textarea { resize:vertical; min-height:118px; }
+.orbit-reply-field input[readonly] { color:#bda68e; }
+.orbit-approval-rule { display:flex; align-items:flex-start; gap:8px; margin:14px 0; color:#b89b82; font-size:10px; line-height:1.65; }
+.orbit-reply-actions { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:8px; }
+.orbit-reply-actions button:disabled { opacity:.45; cursor:not-allowed; }
+.orbit-demo-approval-status { display:flex; flex-direction:column; align-items:flex-start; gap:8px; padding:12px; border:1px solid #4f7048; border-radius:9px; background:#111b12; color:#d6e8c9; font-size:11px; }
+.orbit-demo-approval-status span { color:#afc4a4; }
+.orbit-inbox-security { display:flex; align-items:flex-start; gap:10px; margin-top:14px; padding:12px; border:1px solid #392b20; border-radius:10px; color:#c1a88e; background:#0d0909; font-size:11px; line-height:1.7; }
+.orbit-inbox-security>span { color:#f3c477; font-size:15px; }
+.orbit-inbox-security p { margin:0; }
+.orbit-inbox-security strong { color:#f4d5a3; }
+@media(max-width:760px) { .orbit-inbox-layout { grid-template-columns:1fr; } .orbit-inbox-heading { flex-direction:column; } .orbit-demo-badge { align-self:flex-start; } .orbit-reply-actions { flex-direction:column-reverse; } .orbit-reply-actions button { width:100%; } }
