@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import "./index.css";
 import BrainWorkspace from "./BrainWorkspace.jsx";
+import CalendarWorkspace from "./CalendarWorkspace.jsx";
 
 const initialTasks = [
   { id: 1, title: "Review today's priorities", time: "09:00", done: false },
@@ -223,6 +224,8 @@ function App() {
 
           {page === "Brain" && <BrainWorkspace />}
 
+          {page === "Calendar" && <CalendarWorkspace />}
+
           {page === "Tasks" && (
             <section className="subpage">
               <div className="eyebrow"><span className="pulse" /> YOUR ACTION LIST</div>
@@ -250,7 +253,7 @@ function App() {
             </section>
           )}
 
-          {page !== "Today" && page !== "Brain" && page !== "Tasks" && (
+          {page !== "Today" && page !== "Brain" && page !== "Calendar" && page !== "Tasks" && (
             <section className="subpage">
               <div className="eyebrow"><span className="pulse" /> ORBIT WORKSPACE</div>
               <h1>{page === "Settings" ? "Your space." : `Explore ${page.toLowerCase()}.`}</h1>
