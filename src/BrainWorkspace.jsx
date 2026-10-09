@@ -114,7 +114,17 @@ export default function BrainWorkspace() {
   };
   const calendarDateKey = (date) => date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0");
   const monthLabel = calendarCursor.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
-  const filteredCalendarEvents = calendarEvents.filter((event) => {
+  const filteredCalendarEvents = calendarEvents.map((event) => {
+    if (event.recurrence === "yearly" && event.birthdayDate) {
+      const monthDay = event.birthdayDate.slice(5);
+      const now = new Date();
+      const today = dateString(now).slice(5);
+      const year = now.getFullYear() + (monthDay < today ? 1 : 0);
+      const next = new Date(year, Number(monthDay.slice(0, 2)) - 1, Number(monthDay.slice(3, 5)));
+      return { ...event, date: dateString(next) };
+    }
+    return event;
+  }).filter((event) => {
     const q = calendarSearch.trim().toLowerCase();
     return !q || [event.title, event.location, event.notes, event.category].some((part) => String(part || "").toLowerCase().includes(q));
   }).sort((a,b) => (a.date + (a.start || "")).localeCompare(b.date + (b.start || "")));
