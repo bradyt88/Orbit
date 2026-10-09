@@ -673,3 +673,25 @@ button:focus-visible, input:focus-visible { outline-color: #ffbd58; }
 @media(prefers-reduced-motion:reduce) {
  .orbit-space-stars,.orbit-cosmos-lines ellipse,.orbit-cosmos-lines line,.orbit-central-brain .orbit-core-image,.orbit-brain-ring,.orbit-space-node-orb i,.orbit-energy-floor i,.orbit-cosmos-nebula,.orbit-brain-aura { animation:none!important; }
 }
+
+
+/* Orbit branch motion and improved People placement */
+.orbit-space-node {
+  translate: 0 0;
+  animation: orbitNodeFloat var(--node-float, 6s) ease-in-out infinite;
+  animation-delay: var(--node-delay, 0s);
+}
+.orbit-space-node:hover,
+.orbit-space-node.selected {
+  animation-play-state: paused;
+}
+@keyframes orbitNodeFloat {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -7px; }
+}
+@media (max-width: 600px) {
+  .orbit-space-node { animation-duration: 7s; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .orbit-space-node { animation: none !important; translate: 0 0; }
+}
