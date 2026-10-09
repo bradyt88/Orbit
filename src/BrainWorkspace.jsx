@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
-const branches = ["All", "Calendar", "Tasks", "Goals", "Moments", "People", "Ideas", "Work", "Family"];
+const branches = ["All", "Calendar", "Tasks", "Goals", "Moments", "People", "Ideas", "Work", "Family", "Creative", "Finance", "Health", "Learning", "Travel"];
 const starters = [
   { id: 1, title: "Welcome to your Brain", content: "This is your starting point. Add something below and Orbit will place it into a branch.", category: "Ideas", createdAt: Date.now() }
 ];
@@ -113,7 +113,7 @@ export default function BrainWorkspace() {
     { name: "Goals", icon: "◎", x: 65, y: 86, tone: "gold", hint: "Milestones · Progress" },
     { name: "Travel", icon: "✈", x: 87, y: 55, tone: "gold", hint: "Trips · Adventures" },
     { name: "Moments", icon: "♡", x: 50, y: 94, tone: "red", hint: "Memories · Life" },
-    { name: "People", icon: "♧", x: 50, y: 20, tone: "gold", hint: "Friends · Contacts" }
+    { name: "People", icon: "♧", x: 89, y: 22, tone: "gold", hint: "Friends · Contacts" }
   ];
   return (
     <main className="orbit-one-screen orbit-cosmos-screen">
@@ -139,8 +139,8 @@ export default function BrainWorkspace() {
           <img className="orbit-core-image" src={import.meta.env.BASE_URL + "images/brain/orbit-brain.png"} alt="Orbit's glowing gold and crimson brain" />
           <div className="orbit-core-caption"><span className="orbit-live-dot" /> YOUR BRAIN IS THE CENTRE</div>
         </div>
-        {nodeLayout.map((node) => (
-          <button key={node.name} type="button" style={{ left: node.x + "%", top: node.y + "%" }}
+        {nodeLayout.map((node, index) => (
+          <button key={node.name} type="button" style={{ left: node.x + "%", top: node.y + "%", "--node-float": (5.5 + (index % 4) * 0.8) + "s", "--node-delay": (-index * 0.7) + "s" }}
             className={"orbit-space-node " + node.tone + (activeBranch === node.name ? " selected" : "")}
             onClick={() => { setActiveBranch(node.name); setEditingId(null); document.querySelector(".orbit-branch-content")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
             aria-label={"Open " + node.name + " branch"}>
